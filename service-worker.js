@@ -1,14 +1,19 @@
-// Service Worker dla Senior-Easy App
 const CACHE_NAME = 'senior-easy-v4.0';
-const STATIC_CACHE = 'static-cache-v4';
-const DYNAMIC_CACHE = 'dynamic-cache-v4';
+const STATIC_CACHE = 'static-v4';
+const DYNAMIC_CACHE = 'dynamic-v4';
 
 // Zasoby do cache'owania podczas instalacji
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon-72.png',
+  '/icon-96.png',
+  '/icon-128.png',
+  '/icon-144.png',
+  '/icon-152.png',
   '/icon-192.png',
+  '/icon-384.png',
   '/icon-512.png',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/react@18/umd/react.production.min.js',
@@ -16,295 +21,210 @@ const STATIC_ASSETS = [
   'https://unpkg.com/@babel/standalone/babel.min.js'
 ];
 
-// Zasoby do cache'owania dynamicznego
-const DYNAMIC_ASSETS = [
-  // API endpoints które chcemy cache'ować
-];
-
 // Instalacja Service Workera
 self.addEventListener('install', (event) => {
-  console.log('🟢 Service Worker instalowany...');
+  console.log('Service Worker: Instalowanie...', event);
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('📦 Cache otwarty, dodawanie zasobów...');
+        console.log('Service Worker: Cacheowanie zasobów statycznych');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('✅ Wszystkie zasoby zostały zcacheowane');
+        console.log('Service Worker: Zainstalowany');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('❌ Błąd podczas cacheowania zasobów:', error);
+        console.error('Service Worker: Błąd podczas cacheowania', error);
       })
   );
 });
 
 // Aktywacja Service Workera
 self.addEventListener('activate', (event) => {
-  console.log('🟡 Service Worker aktywowany...');
+  console.log('Service Worker: Aktywacja...', event);
   
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            // Usuń stare cache'e
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== CACHE_NAME) {
-              console.log('🗑️ Usuwanie starego cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('✅ Service Worker został aktywowany');
-        return self.clients.claim();
-      })
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== STATIC_CACHE && cache !== DYNAMIC_CACHE && cache !== CACHE_NAME) {
+            console.log('Service Worker: Usuwanie starego cache', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+    .then(() => {
+      console.log('Service Worker: Aktywowany');
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch events - strategia Cache First z fallback do network
+// Przechwytywanie żądań
 self.addEventListener('fetch', (event) => {
-  // Pomijamy żądania inne niż HTTP/HTTPS
+  // Pomijamy żądania inne niż HTTP
   if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
     caches.match(event.request)
-      .then((cachedResponse) => {
-        // Zwróć z cache jeśli istnieje
-        if (cachedResponse) {
-          console.log('📂 Zasób z cache:', event.request.url);
-          return cachedResponse;
+      .then((response) => {
+        // Jeśli zasób jest w cache, zwracamy go
+        if (response) {
+          return response;
         }
 
-        // W przeciwnym razie pobierz z network
+        // W przeciwnym razie wykonujemy żądanie sieciowe
         return fetch(event.request)
-          .then((networkResponse) => {
-            // Sprawdź czy otrzymaliśmy prawidłową odpowiedź
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
+          .then((fetchResponse) => {
+            // Sprawdzamy czy odpowiedź jest poprawna
+            if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+              return fetchResponse;
             }
 
-            // Klonuj odpowiedź bo może być użyta tylko raz
-            const responseToCache = networkResponse.clone();
+            // Klonujemy odpowiedź
+            const responseToCache = fetchResponse.clone();
 
-            // Dodaj do dynamicznego cache
+            // Cache'ujemy dynamiczne odpowiedzi
             caches.open(DYNAMIC_CACHE)
               .then((cache) => {
-                console.log('💾 Dodawanie do dynamic cache:', event.request.url);
                 cache.put(event.request, responseToCache);
               })
               .catch((error) => {
-                console.warn('⚠️ Nie udało się dodać do cache:', error);
+                console.warn('Service Worker: Błąd cacheowania dynamicznego', error);
               });
 
-            return networkResponse;
+            return fetchResponse;
           })
           .catch((error) => {
-            console.log('🌐 Błąd sieci, próba fallback...');
+            console.warn('Service Worker: Błąd sieci', error);
             
-            // Fallback dla stron - zwróć stronę główną
+            // Dla stron - zwracamy stronę główną z cache
             if (event.request.destination === 'document') {
-              return caches.match('/')
-                .then((cachedHome) => {
-                  if (cachedHome) {
-                    console.log('🏠 Fallback do strony głównej');
-                    return cachedHome;
-                  }
-                  // Fallback offline page
-                  return new Response(
-                    `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <title>Senior-Easy - Tryb Offline</title>
-                      <meta name="viewport" content="width=device-width, initial-scale=1">
-                      <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          text-align: center;
-                          padding: 50px;
-                          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                          color: white;
-                        }
-                        .container {
-                          max-width: 500px;
-                          margin: 0 auto;
-                          background: rgba(255,255,255,0.1);
-                          padding: 30px;
-                          border-radius: 20px;
-                          backdrop-filter: blur(10px);
-                        }
-                        h1 { font-size: 2.5em; margin-bottom: 20px; }
-                        p { font-size: 1.2em; margin-bottom: 20px; }
-                        .emoji { font-size: 4em; margin: 20px 0; }
-                      </style>
-                    </head>
-                    <body>
-                      <div class="container">
-                        <div class="emoji">📶</div>
-                        <h1>Brak połączenia</h1>
-                        <p>Aplikacja Senior-Easy działa w trybie offline. Niektóre funkcje mogą być niedostępne.</p>
-                        <p>Po przywróceniu połączenia aplikacja wróci do pełnej funkcjonalności.</p>
-                        <div class="emoji">💊👵📞</div>
-                      </div>
-                    </body>
-                    </html>
-                    `,
-                    {
-                      headers: { 'Content-Type': 'text/html' }
-                    }
-                  );
-                });
+              return caches.match('/');
             }
             
-            // Dla innych zasobów zwróć błąd
-            return new Response('Zasób niedostępny w trybie offline', {
+            // Dla obrazków - zwracamy placeholder
+            if (event.request.destination === 'image') {
+              return caches.match('/icon-192.png');
+            }
+            
+            return new Response('Brak połączenia z internetem', {
               status: 408,
-              statusText: 'Offline'
+              headers: { 'Content-Type': 'text/plain' }
             });
           });
       })
   );
 });
 
-// Background Sync dla danych
-self.addEventListener('sync', (event) => {
-  console.log('🔄 Background Sync:', event.tag);
-  
-  if (event.tag === 'background-sync') {
-    event.waitUntil(
-      syncData()
-        .then(() => {
-          console.log('✅ Synchronizacja zakończona');
-          // Wyślij powiadomienie o sukcesie
-          self.registration.showNotification('Senior-Easy', {
-            body: 'Dane zostały zsynchronizowane',
-            icon: '/icon-192.png',
-            badge: '/icon-192.png'
-          });
-        })
-        .catch((error) => {
-          console.error('❌ Błąd synchronizacji:', error);
-        })
-    );
-  }
-});
-
-// Push notifications
-self.addEventListener('push', (event) => {
-  console.log('📨 Push notification otrzymane');
-  
-  if (!event.data) return;
-  
-  const data = event.data.json();
-  const options = {
-    body: data.body || 'Nowa wiadomość z Senior-Easy',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    image: data.image,
-    data: data.url,
-    actions: [
-      {
-        action: 'open',
-        title: 'Otwórz aplikację'
-      },
-      {
-        action: 'close',
-        title: 'Zamknij'
-      }
-    ],
-    requireInteraction: true,
-    vibrate: [200, 100, 200]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Senior-Easy', options)
-  );
-});
-
-// Kliknięcie w powiadomienie
-self.addEventListener('notificationclick', (event) => {
-  console.log('🔔 Kliknięto powiadomienie:', event.notification.tag);
-  
-  event.notification.close();
-  
-  if (event.action === 'open') {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' })
-        .then((clientList) => {
-          // Szukaj otwartego okna
-          for (const client of clientList) {
-            if (client.url.includes(self.location.origin) && 'focus' in client) {
-              return client.focus();
-            }
-          }
-          // Otwórz nowe okno jeśli nie znaleziono
-          if (clients.openWindow) {
-            return clients.openWindow('/');
-          }
-        })
-    );
-  }
-});
-
-// Funkcja synchronizacji danych
-async function syncData() {
-  try {
-    // Tutaj można dodać logikę synchronizacji z serwerem
-    console.log('🔄 Synchronizacja danych w tle...');
-    
-    // Przykładowa synchronizacja
-    const pendingActions = await getPendingActions();
-    
-    for (const action of pendingActions) {
-      await processPendingAction(action);
-    }
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('❌ Błąd synchronizacji:', error);
-    return Promise.reject(error);
-  }
-}
-
-// Pobierz oczekujące akcje (do implementacji)
-async function getPendingActions() {
-  // W przyszłości można tu dodać pobieranie akcji z IndexedDB
-  return [];
-}
-
-// Przetwórz oczekującą akcję (do implementacji)
-async function processPendingAction(action) {
-  // W przyszłości można tu dodać wysyłanie danych do serwera
-  console.log('📤 Przetwarzanie akcji:', action);
-  return Promise.resolve();
-}
-
-// Periodic Sync (dla przyszłych wersji)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'periodic-sync') {
-    console.log('🕒 Periodic Sync uruchomiony');
-    event.waitUntil(syncData());
-  }
-});
-
-// Obsługa komunikatów
+// Obsługa wiadomości
 self.addEventListener('message', (event) => {
-  console.log('💬 Otrzymano wiadomość:', event.data);
-  
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// Obsługa powiadomień push
+self.addEventListener('push', (event) => {
+  console.log('Service Worker: Push Notification received', event);
   
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({
-      version: '4.0',
-      cache: CACHE_NAME
-    });
+  let data = {
+    title: 'Senior-Easy',
+    body: 'Masz nową wiadomość',
+    icon: '/icon-192.png',
+    badge: '/icon-72.png'
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (error) {
+      console.warn('Service Worker: Błąd parsowania danych push', error);
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-72.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: '1'
+    },
+    actions: [
+      {
+        action: 'explore',
+        title: 'Otwórz aplikację',
+        icon: '/icon-72.png'
+      },
+      {
+        action: 'close',
+        title: 'Zamknij',
+        icon: '/icon-72.png'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Obsługa kliknięć w powiadomienia
+self.addEventListener('notificationclick', (event) => {
+  console.log('Service Worker: Notification click received', event);
+  
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window' })
+      .then((clientList) => {
+        // Szukamy otwartego okna aplikacji
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        
+        // Jeśli nie ma otwartego okna, otwieramy nowe
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      })
+  );
+});
+
+// Obsługa synchronizacji w tle
+self.addEventListener('sync', (event) => {
+  console.log('Service Worker: Background sync', event);
+  
+  if (event.tag === 'background-sync') {
+    event.waitUntil(doBackgroundSync());
   }
 });
 
-console.log('🚀 Service Worker Senior-Easy został załadowany');
+// Funkcja synchronizacji w tle
+function doBackgroundSync() {
+  return new Promise((resolve) => {
+    // Tutaj można dodać logikę synchronizacji danych
+    console.log('Service Worker: Synchronizacja w tle');
+    resolve();
+  });
+}
+
+// Obsługa stanu offline
+self.addEventListener('offline', () => {
+  console.log('Service Worker: Aplikacja jest offline');
+});
+
+self.addEventListener('online', () => {
+  console.log('Service Worker: Aplikacja jest online');
+});
