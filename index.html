@@ -245,16 +245,74 @@
     const addSosContact=()=>setSosContacts(prev=>[...prev,{id:Date.now(),name:'Nowy numer',phone:'',description:'Opis'}]);
     const removeSosContact=id=>{if(sosContacts.length<=1){alert('Musi zostać przynajmniej jeden numer');return;}setSosContacts(prev=>prev.filter(c=>c.id!==id));};
 
-    // POGODA
-    const fetchWeather=async()=>{
-      setWeatherLoading(true);
-      await new Promise(r=>setTimeout(r,600));
-      const conditions=[{c:'Słonecznie',i:'☀️'},{c:'Częściowe zachmurzenie',i:'⛅'},{c:'Deszczowo',i:'🌧️'},{c:'Pochmurno',i:'☁️'}];
-      const pick=conditions[Math.floor(Math.random()*conditions.length)];
-      setWeatherData({temperature:Math.round(Math.random()*15+10),condition:pick.c,icon:pick.i,humidity:Math.round(Math.random()*50+40),wind:Math.round(Math.random()*20+5),city:'Warszawa'});
-      setWeatherLoading(false);
-      addNotification('Pobrano pogodę');
-    };
+ // Pogoda
+            const fetchWeather = async () => {
+                setWeatherLoading(true);
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            reject(new Error('Geolokalizacja niedostępna'));
+                        }
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 10000,
+                            enableHighAccuracy: true
+                        });
+                    });
+
+                    const { latitude, longitude } = position.coords;
+                    
+                    const weatherResponse = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`
+                    );
+                    
+                    const weatherJson = await weatherResponse.json();
+                    
+                    const locationResponse = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+                    );
+                    
+                    const locationData = await locationResponse.json();
+                    const city = locationData.address.city || locationData.address.town || 'Twoja lokalizacja';
+                    
+                    const weatherCodes = {
+                        0: { condition: 'Słonecznie', icon: '☀️' },
+                        1: { condition: 'Przeważnie słonecznie', icon: '🌤️' },
+                        2: { condition: 'Częściowe zachmurzenie', icon: '⛅' },
+                        3: { condition: 'Pochmurno', icon: '☁️' },
+                        61: { condition: 'Deszcz', icon: '🌧️' },
+                        71: { condition: 'Śnieg', icon: '🌨️' },
+                        95: { condition: 'Burza', icon: '⛈️' }
+                    };
+                    
+                    const weatherCode = weatherJson.current.weather_code;
+                    const weatherInfo = weatherCodes[weatherCode] || { condition: 'Zmienna', icon: '🌤️' };
+                    
+                    setWeatherData({
+                        temperature: Math.round(weatherJson.current.temperature_2m),
+                        condition: weatherInfo.condition,
+                        icon: weatherInfo.icon,
+                        humidity: Math.round(weatherJson.current.relative_humidity_2m),
+                        wind: Math.round(weatherJson.current.wind_speed_10m),
+                        city: city
+                    });
+                    
+                    alert(`Pogoda zaktualizowana dla: ${city}`);
+                } catch (error) {
+                    console.error('Błąd pogody:', error);
+                    setWeatherData({
+                        temperature: 15,
+                        condition: 'Słonecznie',
+                        icon: '☀️',
+                        humidity: 60,
+                        wind: 10,
+                        city: 'Demo'
+                    });
+                    alert('Nie można pobrać lokalizacji. Pokazuję dane przykładowe.');
+                } finally {
+                    setWeatherLoading(false);
+                }
+            };
+
 
     // AWARYJNY
     const activateEmergencyMode=()=>{
