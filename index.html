@@ -1,579 +1,1880 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <title>Senior-Easy App</title>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{width:100%;height:100%;overflow-x:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
-    /* płynne pisanie */
-    input,textarea,select{-webkit-user-select:text!important;-moz-user-select:text!important;-ms-user-select:text!important;user-select:text!important;font-size:1.25rem!important;padding:.75rem 1rem;border:2px solid #d1d5db;border-radius:1rem;width:100%;background:white;touch-action:manipulation}
-    input:focus,textarea:focus,select:focus{outline:none;border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.25)}
-    button{cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.1)}
-    .improved-input{-webkit-user-select:text!important;-moz-user-select:text!important;-ms-user-select:text!important;user-select:text!important;font-size:1.25rem!important;padding:.75rem 1rem;border:2px solid #d1d5db;border-radius:1rem;width:100%;background:white;touch-action:manipulation}
-    body{background:linear-gradient(to bottom right,#dbeafe,#e0e7ff)}
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <meta name="description" content="Senior-Easy - Aplikacja dla seniorów ułatwiająca kontakt z rodziną i zarządzanie lekami" />
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Senior-Easy" />
+    <title>Senior-Easy App</title>
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json" />
+
+<!-- Theme Color dla różnych przeglądarek -->
+<meta name="theme-color" content="#3B82F6" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Senior-Easy">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<!-- Microsoft Tile Color -->
+<meta name="msapplication-TileColor" content="#3B82F6">
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        *{box-sizing:border-box}
+        .rounded-3xl{border-radius:1.5rem}
+        .rounded-2xl{border-radius:1rem}
+        html,body{margin:0;padding:0;width:100%;height:100%;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif}
+        
+        /* CAŁKOWICIE USUŃ globalne user-select:none */
+        /* Nie używaj * { user-select: none } w ogóle! */
+        
+        /* Zamiast tego, zastosuj user-select:none tylko dla elementów, które tego potrzebują */
+        button, div, span, p, h1, h2, h3, h4, h5, h6 {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* A pola formularza pozostaw z domyślnym zachowaniem */
+        input, textarea, select {
+            /* Pozostaw domyślne style przeglądarki */
+            font-size: 1.25rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 1rem;
+            width: 100%;
+            background-color: white;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: 2px solid #3B82F6;
+            outline-offset: 2px;
+            border-color: #3B82F6;
+        }
+        
+        button{
+            cursor:pointer;
+            -webkit-tap-highlight-color:rgba(0,0,0,.1);
+        }
+        
+        .install-prompt{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;animation:slideUp .3s ease-out;max-width:calc(100vw - 32px)}
+        @keyframes slideUp{from{transform:translate(-50%,100px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+        #root{min-height:100vh;width:100%}
+        .emergency-pulse {animation: pulse 2s infinite;}
+        @keyframes pulse {
+            0% {transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);}
+            70% {transform: scale(1.05); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);}
+            100% {transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);}
+        }
+        .fade-in {animation: fadeIn 0.5s ease-in;}
+        @keyframes fadeIn {from {opacity:0;} to {opacity:1;}}
+        .slide-in {animation: slideIn 0.3s ease-out;}
+        @keyframes slideIn {from {transform:translateY(20px);opacity:0;} to {transform:translateY(0);opacity:1;}}
+        
+        @media (max-width: 768px) {
+            input, textarea, select {
+                font-size: 16px;
+                padding: 0.875rem 1rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100">
-<div id="root" class="p-2 sm:p-4 max-w-4xl mx-auto pb-20 min-h-screen"></div>
+    <div id="root" class="p-2 sm:p-4 max-w-4xl mx-auto pb-20 min-h-screen"></div>
 
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel">
-  const {useState,useEffect,useRef}=React;
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-  /* ============= SMART INPUT – NIE PRZERYSOWUJE ============= */
-  function SmartInput({value,onChange,...rest}){
-    const [local,setLocal]=useState(value);
-    useEffect(()=>setLocal(value),[value]);
-    return <input {...rest} value={local} onChange={e=>setLocal(e.target.value)} onBlur={()=>onChange(local)} className="improved-input"/>
-  }
-  /* =========================================================== */
+        // DODAJ KOMPONENT SmartInput PRZED SeniorEasyApp
+        const SmartInput = ({ type = 'text', placeholder, value, onChange, className = '' }) => {
+            const inputRef = useRef(null);
+            
+            const handleTouchStart = (e) => {
+                e.stopPropagation();
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            };
+            
+            const handleFocus = (e) => {
+                e.target.style.backgroundColor = '#f0f9ff';
+            };
+            
+            const handleBlur = (e) => {
+                e.target.style.backgroundColor = 'white';
+            };
+            
+            return (
+                <input
+                    ref={inputRef}
+                    type={type}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onTouchStart={handleTouchStart}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    className={`w-full text-xl p-4 border-2 border-gray-300 rounded-2xl bg-white focus:outline-2 focus:outline-blue-500 focus:border-blue-500 ${className}`}
+                    style={{
+                        WebkitUserSelect: 'text',
+                        userSelect: 'text',
+                        WebkitTouchCallout: 'default',
+                        touchAction: 'manipulation',
+                        fontSize: '16px'
+                    }}
+                />
+            );
+        };
 
-  function SeniorEasyApp(){
-    const [currentScreen,setCurrentScreen]=useState('home');
-    const [medications,setMedications]=useState([]);
-    const [familyContacts,setFamilyContacts]=useState([]);
-    const [localServices,setLocalServices]=useState([]);
-    const [notifications,setNotifications]=useState([]);
-    const [careMode,setCareMode]=useState(true);
-    const [showInstallPrompt,setShowInstallPrompt]=useState(false);
-    const [deferredPrompt,setDeferredPrompt]=useState(null);
-    const [showNotifyDialog,setShowNotifyDialog]=useState(false);
-    const [selectedMedication,setSelectedMedication]=useState(null);
-    const [medicationHistory,setMedicationHistory]=useState([]);
-    const [newMedName,setNewMedName]=useState('');
-    const [newMedTime,setNewMedTime]=useState('');
-    const [newMedDays,setNewMedDays]=useState(['Pn','Wt','Śr','Cz','Pt','Sb','Nd']);
-    const [newMedNote,setNewMedNote]=useState('');
-    const [newContactName,setNewContactName]=useState('');
-    const [newContactPhone,setNewContactPhone]=useState('');
-    const [newContactApp,setNewContactApp]=useState('');
-    const [newServiceName,setNewServiceName]=useState('');
-    const [newServicePhone,setNewServicePhone]=useState('');
-    const [newServiceIcon,setNewServiceIcon]=useState('');
-    const [editingContact,setEditingContact]=useState(null);
-    const [editingService,setEditingService]=useState(null);
-    const [isLoggedIn,setIsLoggedIn]=useState(false);
-    const [username,setUsername]=useState('');
-    const [password,setPassword]=useState('');
-    const [currentPassword,setCurrentPassword]=useState('');
-    const [newPassword,setNewPassword]=useState('');
-    const [confirmPassword,setConfirmPassword]=useState('');
-    const [emergencyMode,setEmergencyMode]=useState(false);
-    const [emergencyCountdown,setEmergencyCountdown]=useState(null);
-    const [healthData,setHealthData]=useState({});
-    const [reminders,setReminders]=useState([]);
-    const [newReminderText,setNewReminderText]=useState('');
-    const [newReminderTime,setNewReminderTime]=useState('');
-    const [weatherData,setWeatherData]=useState(null);
-    const [weatherLoading,setWeatherLoading]=useState(false);
-    const [location,setLocation]=useState('');
-    const [dailyTips,setDailyTips]=useState([]);
-    const [currentTipIndex,setCurrentTipIndex]=useState(0);
-    const [sosContacts,setSosContacts]=useState([]);
+        function SeniorEasyApp() {
+            const [currentScreen, setCurrentScreen] = useState('home');
+            const [medications, setMedications] = useState([]);
+            const [familyContacts, setFamilyContacts] = useState([]);
+            const [localServices, setLocalServices] = useState([]);
+            const [notifications, setNotifications] = useState([]);
+            const [careMode, setCareMode] = useState(true);
+            const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [showNotifyDialog, setShowNotifyDialog] = useState(false);
+            const [selectedMedication, setSelectedMedication] = useState(null);
+            const [medicationHistory, setMedicationHistory] = useState([]);
+            const [newMedName, setNewMedName] = useState('');
+            const [newMedTime, setNewMedTime] = useState('');
+            const [newMedDays, setNewMedDays] = useState(['Pn','Wt','Śr','Cz','Pt','Sb','Nd']);
+            const [newMedNote, setNewMedNote] = useState('');
+            const [newContactName, setNewContactName] = useState('');
+            const [newContactPhone, setNewContactPhone] = useState('');
+            const [newContactApp, setNewContactApp] = useState('');
+            const [newServiceName, setNewServiceName] = useState('');
+            const [newServicePhone, setNewServicePhone] = useState('');
+            const [newServiceIcon, setNewServiceIcon] = useState('');
+            const [editingContact, setEditingContact] = useState(null);
+            const [editingService, setEditingService] = useState(null);
+            
+            // NOWE STANY
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [currentPassword, setCurrentPassword] = useState('');
+            const [newPassword, setNewPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [emergencyMode, setEmergencyMode] = useState(false);
+            const [emergencyCountdown, setEmergencyCountdown] = useState(null);
+            const [healthData, setHealthData] = useState({});
+            const [reminders, setReminders] = useState([]);
+            const [newReminderText, setNewReminderText] = useState('');
+            const [newReminderTime, setNewReminderTime] = useState('');
+            const [weatherData, setWeatherData] = useState(null);
+            const [weatherLoading, setWeatherLoading] = useState(false);
+            const [location, setLocation] = useState('');
+            const [dailyTips, setDailyTips] = useState([]);
+            const [currentTipIndex, setCurrentTipIndex] = useState(0);
+            const [voiceAssistant, setVoiceAssistant] = useState(false);
+            const [sosContacts, setSosContacts] = useState([]);
+            const [isListening, setIsListening] = useState(false);
+            const [voiceCommand, setVoiceCommand] = useState('');
 
-    useEffect(()=>{
-      const saved=localStorage.getItem('medications');
-      setMedications(saved?JSON.parse(saved):[
-        {id:1,name:'Acard',time:'08:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt','Sb','Nd'],note:'przed jedzeniem'},
-        {id:2,name:'Metformin',time:'12:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt'],note:'po posiłku'},
-        {id:3,name:'Amlozek',time:'20:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt','Sb','Nd'],note:''}
-      ]);
-      const savedC=localStorage.getItem('familyContacts');
-      setFamilyContacts(savedC?JSON.parse(savedC):[
-        {id:1,name:'Anna (córka)',phone:'+48123456789',avatar:'👩',app:'whatsapp',emergencyContact:true},
-        {id:2,name:'Piotr (syn)',phone:'+48987654321',avatar:'👨',app:'viber',emergencyContact:true},
-        {id:3,name:'Dr. Kowalski',phone:'+48555123456',avatar:'👨‍⚕️',app:'',emergencyContact:false}
-      ]);
-      const savedS=localStorage.getItem('localServices');
-      setLocalServices(savedS?JSON.parse(savedS):[
-        {id:1,name:'Transport Medyczny',phone:'800123456',icon:'🚑'},
-        {id:2,name:'Pomoc Domowa',phone:'800654321',icon:'🏠'},
-        {id:3,name:'Apteka z Dowozem',phone:'800789012',icon:'💊'},
-        {id:4,name:'Pogotowie',phone:'999',icon:'🚨'},
-        {id:5,name:'Numer Alarmowy',phone:'112',icon:'🆘'}
-      ]);
-      const savedH=localStorage.getItem('healthData');
-      setHealthData(savedH?JSON.parse(savedH):{bloodPressure:'',heartRate:'',bloodSugar:'',weight:'',lastUpdate:''});
-      const savedR=localStorage.getItem('reminders');
-      setReminders(savedR?JSON.parse(savedR):[]);
-      const savedL=localStorage.getItem('isLoggedIn');
-      setIsLoggedIn(savedL==='true');
-      const savedU=localStorage.getItem('username');
-      setUsername(savedU||'');
-      const savedSo=localStorage.getItem('sosContacts');
-      setSosContacts(savedSo?JSON.parse(savedSo):[
-        {id:1,name:'Pogotowie Ratunkowe',phone:'999',description:'Nagłe przypadki medyczne'},
-        {id:2,name:'Numer Alarmowy',phone:'112',description:'Wszystkie nagłe sytuacje'},
-        {id:3,name:'Policja',phone:'997',description:'Pilne sprawy policyjne'},
-        {id:4,name:'Straż Pożarna',phone:'998',description:'Pożary i zagrożenia'}
-      ]);
-      setDailyTips(["Pij co najmniej 1,5 litra wody dziennie","Zrób krótki spacer dla lepszego krążenia","Pamiętaj o regularnych posiłkach","Sprawdź czy masz wystarczającą ilość leków","Zadzwoń do bliskiej osoby"]);
-      fetchWeather();
-    },[]);
+            // Refy dla pól wprowadzania tekstu
+            const medNameInputRef = useRef(null);
+            const contactNameInputRef = useRef(null);
+            const serviceNameInputRef = useRef(null);
 
-    useEffect(()=>{localStorage.setItem('medications',JSON.stringify(medications))},[medications]);
-    useEffect(()=>{localStorage.setItem('familyContacts',JSON.stringify(familyContacts))},[familyContacts]);
-    useEffect(()=>{localStorage.setItem('localServices',JSON.stringify(localServices))},[localServices]);
-    useEffect(()=>{localStorage.setItem('reminders',JSON.stringify(reminders))},[reminders]);
-    useEffect(()=>{localStorage.setItem('sosContacts',JSON.stringify(sosContacts))},[sosContacts]);
-    useEffect(()=>{localStorage.setItem('healthData',JSON.stringify(healthData))},[healthData]);
+            // DANE POCZĄTKOWE
+            useEffect(() => {
+                const savedMeds = localStorage.getItem('medications');
+                const savedContacts = localStorage.getItem('familyContacts');
+                const savedServices = localStorage.getItem('localServices');
+                const savedHistory = localStorage.getItem('medicationHistory');
+                const savedHealth = localStorage.getItem('healthData');
+                const savedReminders = localStorage.getItem('reminders');
+                const savedLogin = localStorage.getItem('isLoggedIn');
+                const savedUser = localStorage.getItem('username');
+                const savedSosContacts = localStorage.getItem('sosContacts');
+                const savedPassword = localStorage.getItem('userPassword');
 
-    const addNotification=text=>{
-      const newNotif={id:Date.now(),text,time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),read:false};
-      setNotifications(prev=>[newNotif,...prev]);
-    };
+                setMedications(savedMeds ? JSON.parse(savedMeds) : [
+                    {id:1,name:'Acard',time:'08:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt','Sb','Nd'],note:'przed jedzeniem'},
+                    {id:2,name:'Metformin',time:'12:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt'],note:'po posiłku'},
+                    {id:3,name:'Amlozek',time:'20:00',taken:false,days:['Pn','Wt','Śr','Cz','Pt','Sb','Nd'],note:''}
+                ]);
+                
+                setFamilyContacts(savedContacts ? JSON.parse(savedContacts) : [
+                    {id:1,name:'Anna (córka)',phone:'+48123456789',avatar:'👩',app:'whatsapp', emergencyContact: true},
+                    {id:2,name:'Piotr (syn)',phone:'+48987654321',avatar:'👨',app:'viber', emergencyContact: true},
+                    {id:3,name:'Dr. Kowalski',phone:'+48555123456',avatar:'👨‍⚕️',app:'', emergencyContact: false}
+                ]);
+                
+                setLocalServices(savedServices ? JSON.parse(savedServices) : [
+                    {id:1,name:'Transport Medyczny',phone:'800123456',icon:'🚑'},
+                    {id:2,name:'Pomoc Domowa',phone:'800654321',icon:'🏠'},
+                    {id:3,name:'Apteka z Dowozem',phone:'800789012',icon:'💊'},
+                    {id:4,name:'Pogotowie',phone:'999',icon:'🚨'},
+                    {id:5,name:'Numer Alarmowy',phone:'112',icon:'🆘'}
+                ]);
 
-    const getMedicationStatus=medTime=>{
-      const now=new Date();
-      const[h,m]=medTime.split(':');
-      const med=new Date(); med.setHours(parseInt(h),parseInt(m),0);
-      const d=(now-med)/6e4;
-      if(d<-30)return{status:'early',color:'yellow',icon:'⏰',text:'Za wcześnie'};
-      if(d>60)return{status:'late',color:'red',icon:'⚠️',text:'Spóźniony'};
-      return{status:'ontime',color:'green',icon:'✅',text:'Czas na lek'};
-    };
-    const isMedicationDay=medDays=>{
-      const days=['Nd','Pn','Wt','Śr','Cz','Pt','Sb'];
-      const today=days[new Date().getDay()];
-      return medDays.includes(today);
-    };
-    const markMedicationTaken=id=>{
-      const med=medications.find(m=>m.id===id);
-      if(!med)return;
-      const entry={id:Date.now(),medId:id,medName:med.name,time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),date:new Date().toLocaleDateString('pl-PL'),status:getMedicationStatus(med.time).status};
-      setMedicationHistory(prev=>[entry,...prev].slice(0,50));
-      setMedications(prev=>prev.map(m=>m.id===id?{...m,taken:true}:m));
-      if(careMode){setSelectedMedication(med);setShowNotifyDialog(true);}
-      else addNotification(`Lek "${med.name}" został przyjęty`);
-    };
-    const deleteMedication=id=>setMedications(prev=>prev.filter(m=>m.id!==id));
-    const addMedication=()=>{
-      if(newMedName&&newMedTime){
-        setMedications(prev=>[...prev,{id:Date.now(),name:newMedName,time:newMedTime,taken:false,days:newMedDays,note:newMedNote}]);
-        setNewMedName('');setNewMedTime('');setNewMedDays(['Pn','Wt','Śr','Cz','Pt','Sb','Nd']);setNewMedNote('');
-      }
-    };
-    const toggleDay=day=>setNewMedDays(prev=>prev.includes(day)?prev.filter(d=>d!==day):[...prev,day]);
+                setMedicationHistory(savedHistory ? JSON.parse(savedHistory) : []);
+                setHealthData(savedHealth ? JSON.parse(savedHealth) : {
+                    bloodPressure: '',
+                    heartRate: '',
+                    bloodSugar: '',
+                    weight: '',
+                    lastUpdate: ''
+                });
+                setReminders(savedReminders ? JSON.parse(savedReminders) : []);
+                setIsLoggedIn(savedLogin === 'true');
+                setUsername(savedUser || '');
+                setPassword(savedPassword || 'senior123');
+                setSosContacts(savedSosContacts ? JSON.parse(savedSosContacts) : [
+                    {id:1,name:'Pogotowie Ratunkowe',phone:'999',description:'Nagłe przypadki medyczne'},
+                    {id:2,name:'Numer Alarmowy',phone:'112',description:'Wszystkie nagłe sytuacje'},
+                    {id:3,name:'Policja',phone:'997',description:'Pilne sprawy policyjne'},
+                    {id:4,name:'Straż Pożarna',phone:'998',description:'Pożary i zagrożenia'}
+                ]);
+                
+                // Ładowanie porad dnia
+                setDailyTips([
+                    "Pij co najmniej 1,5 litra wody dziennie",
+                    "Zrób krótki spacer dla lepszego krążenia",
+                    "Pamiętaj o regularnych posiłkach",
+                    "Sprawdź czy masz wystarczającą ilość leków",
+                    "Zadzwoń do bliskiej osoby"
+                ]);
 
-    // KONTAKTY
-    const addContact=()=>{
-      if(newContactName&&newContactPhone){
-        setFamilyContacts(prev=>[...prev,{id:Date.now(),name:newContactName,phone:newContactPhone,avatar:'👤',app:newContactApp,emergencyContact:true}]);
-        setNewContactName('');setNewContactPhone('');setNewContactApp('');
-      }
-    };
-    const deleteContact=id=>setFamilyContacts(prev=>prev.filter(c=>c.id!==id));
-    const startEditContact=c=>{
-      setEditingContact(c.id);
-      setNewContactName(c.name);
-      setNewContactPhone(c.phone);
-      setNewContactApp(c.app);
-    };
-    const saveEditContact=id=>{
-      setFamilyContacts(prev=>prev.map(c=>c.id===id?{...c,name:newContactName,phone:newContactPhone,app:newContactApp}:c));
-      setEditingContact(null);setNewContactName('');setNewContactPhone('');setNewContactApp('');
-    };
-    const cancelEditContact=()=>{setEditingContact(null);setNewContactName('');setNewContactPhone('');setNewContactApp('');};
+                // Automatyczne pobranie pogody przy starcie
+                fetchWeather();
+            }, []);
 
-    // USŁUGI
-    const addService=()=>{
-      if(newServiceName&&newServicePhone){
-        setLocalServices(prev=>[...prev,{id:Date.now(),name:newServiceName,phone:newServicePhone,icon:newServiceIcon||'🏢'}]);
-        setNewServiceName('');setNewServicePhone('');setNewServiceIcon('');
-      }
-    };
-    const deleteService=id=>setLocalServices(prev=>prev.filter(s=>s.id!==id));
-    const startEditService=s=>{
-      setEditingService(s.id);
-      setNewServiceName(s.name);
-      setNewServicePhone(s.phone);
-      setNewServiceIcon(s.icon);
-    };
-    const saveEditService=id=>{
-      setLocalServices(prev=>prev.map(s=>s.id===id?{...s,name:newServiceName,phone:newServicePhone,icon:newServiceIcon||'🏢'}:s));
-      setEditingService(null);setNewServiceName('');setNewServicePhone('');setNewServiceIcon('');
-    };
-    const cancelEditService=()=>{setEditingService(null);setNewServiceName('');setNewServicePhone('');setNewServiceIcon('');};
+            // NOWE FUNKCJE - SYSTEM LOGOWANIA
+            const handleLogin = () => {
+                const savedPassword = localStorage.getItem('userPassword') || 'senior123';
+                if (username && password === savedPassword) {
+                    setIsLoggedIn(true);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', username);
+                    addNotification(`Witaj z powrotem, ${username}!`);
+                } else {
+                    alert('Nieprawidłowa nazwa użytkownika lub hasło!');
+                }
+            };
 
-    // ZDROWIE
-    const updateHealthData=(field,value)=>{
-      const updated={...healthData,[field]:value,lastUpdate:new Date().toLocaleDateString('pl-PL')};
-      setHealthData(updated);
-      addNotification(`Zaktualizowano dane: ${field}`);
-    };
+            const handleLogout = () => {
+                setIsLoggedIn(false);
+                setUsername('');
+                setPassword('');
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                addNotification('Wylogowano pomyślnie');
+            };
 
-    // PRZYPOMNIENIA
-    const addReminder=()=>{
-      if(newReminderText&&newReminderTime){
-        const r={id:Date.now(),text:newReminderText,time:newReminderTime,completed:false,date:new Date().toLocaleDateString('pl-PL')};
-        setReminders(prev=>[...prev,r]);
-        setNewReminderText('');setNewReminderTime('');
-      }
-    };
-    const toggleReminder=id=>setReminders(prev=>prev.map(rr=>rr.id===id?{...rr,completed:!rr.completed}:rr));
-    const deleteReminder=id=>setReminders(prev=>prev.filter(rr=>rr.id!==id));
+            // NOWE FUNKCJE - ZMIANA HASŁA
+            const changePassword = () => {
+                const savedPassword = localStorage.getItem('userPassword') || 'senior123';
+                
+                if (!currentPassword) {
+                    alert('Proszę wprowadzić obecne hasło');
+                    return;
+                }
+                
+                if (currentPassword !== savedPassword) {
+                    alert('Obecne hasło jest nieprawidłowe');
+                    return;
+                }
+                
+                if (newPassword.length < 4) {
+                    alert('Nowe hasło musi mieć co najmniej 4 znaki');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('Nowe hasły nie są identyczne');
+                    return;
+                }
+                
+                localStorage.setItem('userPassword', newPassword);
+                setPassword(newPassword);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                addNotification('Hasło zostało zmienione pomyślnie');
+            };
 
-    // LOGOWANIE / HASŁO
-    const handleLogin=()=>{
-      const savedP=localStorage.getItem('userPassword')||'senior123';
-      if(username&&password===savedP){setIsLoggedIn(true);localStorage.setItem('isLoggedIn','true');localStorage.setItem('username',username);addNotification(`Witaj ${username}!`);}
-      else alert('Nieprawidłowa nazwa lub hasło!');
-    };
-    const handleLogout=()=>{setIsLoggedIn(false);setUsername('');localStorage.removeItem('isLoggedIn');localStorage.removeItem('username');addNotification('Wylogowano');};
-    const changePassword=()=>{
-      const savedP=localStorage.getItem('userPassword')||'senior123';
-      if(!currentPassword){alert('Podaj obecne hasło');return;}
-      if(currentPassword!==savedP){alert('Obecne hasło jest nieprawidłowe');return;}
-      if(newPassword.length<4){alert('Minimum 4 znaki');return;}
-      if(newPassword!==confirmPassword){alert('Hasła się różnią');return;}
-      localStorage.setItem('userPassword',newPassword);
-      setPassword(newPassword);
-      setCurrentPassword('');setNewPassword('');setConfirmPassword('');
-      addNotification('Hasło zmienione');
-    };
+            // NOWE FUNKCJE - ZARZĄDZANIE KONTAKTAMI SOS
+            const updateSosContact = (id, field, value) => {
+                setSosContacts(prev => 
+                    prev.map(contact => 
+                        contact.id === id ? { ...contact, [field]: value } : contact
+                    )
+                );
+            };
 
-    // SOS
-    const updateSosContact=(id,field,value)=>setSosContacts(prev=>prev.map(c=>c.id===id?{...c,[field]:value}:c));
-    const saveSosContacts=()=>{localStorage.setItem('sosContacts',JSON.stringify(sosContacts));addNotification('Zapisano numery SOS');};
-    const addSosContact=()=>setSosContacts(prev=>[...prev,{id:Date.now(),name:'Nowy numer',phone:'',description:'Opis'}]);
-    const removeSosContact=id=>{if(sosContacts.length<=1){alert('Musi zostać przynajmniej jeden numer');return;}setSosContacts(prev=>prev.filter(c=>c.id!==id));};
+            const saveSosContacts = () => {
+                localStorage.setItem('sosContacts', JSON.stringify(sosContacts));
+                addNotification('Numery alarmowe SOS zostały zaktualizowane');
+            };
 
-    // POGODA
-    const fetchWeather=async()=>{
-      setWeatherLoading(true);
-      await new Promise(r=>setTimeout(r,600));
-      const conditions=[{c:'Słonecznie',i:'☀️'},{c:'Częściowe zachmurzenie',i:'⛅'},{c:'Deszczowo',i:'🌧️'},{c:'Pochmurno',i:'☁️'}];
-      const pick=conditions[Math.floor(Math.random()*conditions.length)];
-      setWeatherData({temperature:Math.round(Math.random()*15+10),condition:pick.c,icon:pick.i,humidity:Math.round(Math.random()*50+40),wind:Math.round(Math.random()*20+5),city:'Warszawa'});
-      setWeatherLoading(false);
-      addNotification('Pobrano pogodę');
-    };
+            const addSosContact = () => {
+                const newContact = {
+                    id: Date.now(),
+                    name: 'Nowy numer',
+                    phone: '',
+                    description: 'Opis numeru alarmowego'
+                };
+                setSosContacts(prev => [...prev, newContact]);
+            };
 
-    // AWARYJNY
-    const activateEmergencyMode=()=>{
-      setEmergencyMode(true);setEmergencyCountdown(5);addNotification('🚨 Tryb awaryjny');
-      const int=setInterval(()=>{
-        setEmergencyCountdown(c=>{
-          if(c<=1){clearInterval(int);sendEmergencyNotifications();return 0;}
-          return c-1;
-        });
-      },1000);
-    };
-    const cancelEmergency=()=>{setEmergencyMode(false);setEmergencyCountdown(null);addNotification('Anulowano');};
-    const sendEmergencyNotifications=()=>{
-      const msg=`🚨 PILNA POMOC! Użytkownik ${username||'Senior'} potrzebuje pomocy!`;
-      familyContacts.filter(fc=>fc.emergencyContact).forEach(c=>{
-        const phone=c.phone.replace(/[^\d+]/g,'');
-        if(c.app==='whatsapp') window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`,'_blank');
-        else if(c.app==='viber') window.location.href=`viber://chat?number=${phone}`;
-        else window.location.href=`sms:${phone}?body=${encodeURIComponent(msg)}`;
-      });
-      if(sosContacts.length) window.location.href=`tel:${sosContacts[0].phone}`;
-      setEmergencyMode(false);
-    };
+            const removeSosContact = (id) => {
+                if (sosContacts.length <= 1) {
+                    alert('Musisz mieć przynajmniej jeden numer alarmowy');
+                    return;
+                }
+                setSosContacts(prev => prev.filter(contact => contact.id !== id));
+            };
 
-    // EKRANY
-    const DashboardScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Witaj, {username||'Użytkowniku'}! 👋</h2>
-        <div className="grid grid-cols-2 gap-3 md:gap-4">
-          <button onClick={()=>setCurrentScreen('video')} className="bg-green-500 hover:bg-green-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">📹</span><span className="text-xl font-bold">Rozmowa Wideo</span></button>
-          <button onClick={()=>setCurrentScreen('medications')} className="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">💊</span><span className="text-xl font-bold">Leki</span></button>
-          <button onClick={()=>setCurrentScreen('contacts')} className="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">👨‍👩‍👧‍👦</span><span className="text-xl font-bold">Rodzina</span></button>
-          <button onClick={()=>setCurrentScreen('services')} className="bg-orange-500 hover:bg-orange-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">📍</span><span className="text-xl font-bold">Usługi</span></button>
-        </div>
-        <div className="bg-white border-4 border-blue-300 p-4 rounded-3xl"><h3 className="text-xl font-bold mb-3 text-center">📋 Dzisiejsze zadania</h3><div className="space-y-2">{medications.filter(m=>isMedicationDay(m.days)&&!m.taken).slice(0,3).map(m=><div key={m.id} className="flex items-center justify-between p-2 bg-yellow-50 rounded-xl"><span className="font-bold">💊 {m.name}</span><span className="text-sm">{m.time}</span></div>)}</div></div>
-        <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-3xl text-center"><h3 className="text-xl font-bold mb-2">💡 Porada dnia</h3><p className="text-lg">{dailyTips[currentTipIndex]}</p><button onClick={()=>setCurrentTipIndex((currentTipIndex+1)%dailyTips.length)} className="mt-2 bg-white text-blue-600 px-3 py-1 rounded-lg font-bold">Następna</button></div>
-        <div className="bg-white border-4 border-yellow-300 p-4 rounded-3xl text-center"><h3 className="text-xl font-bold mb-2">🌤️ Pogoda</h3>{weatherLoading?<>Ładowanie...</>:weatherData?<>
-          <div className="flex items-center justify-center space-x-4"><span className="text-4xl">{weatherData.icon}</span><div><div className="text-2xl font-bold">{weatherData.temperature}°C</div><div className="text-lg">{weatherData.condition}</div><div className="text-sm text-gray-600">{weatherData.city}</div></div></div>
-          <div className="grid grid-cols-2 gap-2 text-sm mt-3"><div className="bg-blue-50 p-2 rounded-lg"><div>💨 Wiatr</div><div className="font-bold">{weatherData.wind} km/h</div></div><div className="bg-blue-50 p-2 rounded-lg"><div>💧 Wilgotność</div><div className="font-bold">{weatherData.humidity}%</div></div></div>
-        </>:<>Brak danych</>}<button onClick={fetchWeather} disabled={weatherLoading} className={`mt-3 w-full py-2 rounded-lg font-bold ${weatherLoading?'bg-gray-400':'bg-yellow-500 hover:bg-yellow-600'} text-white`}>{weatherLoading?'Ładowanie...':'🔄 Odśwież'}</button></div>
-      </div>
-    );
+            // NOWE FUNKCJE - POGODA
+            const fetchWeather = async () => {
+                setWeatherLoading(true);
+                try {
+                    // Mock danych pogodowych
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const mockWeather = {
+                        temperature: Math.round(Math.random() * 15 + 10),
+                        condition: ['Słonecznie', 'Częściowe zachmurzenie', 'Deszczowo', 'Pochmurno'][Math.floor(Math.random() * 4)],
+                        icon: '☀️',
+                        humidity: Math.round(Math.random() * 50 + 40),
+                        wind: Math.round(Math.random() * 20 + 5),
+                        city: 'Warszawa'
+                    };
+                    
+                    const conditionIcons = {
+                        'Słonecznie': '☀️',
+                        'Częściowe zachmurzenie': '⛅',
+                        'Deszczowo': '🌧️',
+                        'Pochmurno': '☁️'
+                    };
+                    
+                    mockWeather.icon = conditionIcons[mockWeather.condition] || '🌤️';
+                    setWeatherData(mockWeather);
+                    addNotification('Pobrano aktualną pogodę');
+                } catch (error) {
+                    console.error('Błąd pobierania pogody:', error);
+                    addNotification('Błąd pobierania pogody');
+                } finally {
+                    setWeatherLoading(false);
+                }
+            };
 
-    const MedicationsScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Przypomnienia o Lekach</h2>
-        {medications.map(med=>{
-          const medStatus=getMedicationStatus(med.time);
-          const isToday=isMedicationDay(med.days);
-          return(
-            <div key={med.id} className={`bg-white border-4 p-4 md:p-6 rounded-3xl shadow-xl ${med.taken?'border-gray-300 opacity-60':medStatus.status==='ontime'?'border-green-500':'border-red-400'}`}>
-              <div className="flex items-start justify-between mb-3"><div className="flex-1"><div className="text-2xl md:text-3xl font-bold">{med.name}</div><div className="text-xl md:text-2xl text-gray-600">⏰ Godzina: {med.time}</div>{med.note&&<div className="text-lg md:text-xl text-blue-600 mt-1 bg-blue-50 px-3 py-1 rounded-lg inline-block">📝 {med.note}</div>}</div>{!isToday&&<div className="bg-gray-100 px-3 py-2 rounded-xl text-sm md:text-base text-gray-600 font-bold ml-2">🚫 Nie dziś</div>}</div>
-              {isToday&&!med.taken&&<div className={`mb-3 p-3 rounded-xl text-center text-lg md:text-xl font-bold ${medStatus.status==='ontime'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{medStatus.icon} {medStatus.text}</div>}
-              {med.taken&&<div className="mb-3 p-3 bg-gray-100 rounded-xl text-center text-lg md:text-xl font-bold text-gray-600">✅ Przyjęty dzisiaj</div>}
-              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
-                {!med.taken&&isToday?<>
-                  <button onClick={()=>markMedicationTaken(med.id)} disabled={medStatus.status==='early'} className={`flex-1 text-white p-3 md:p-4 rounded-2xl text-xl md:text-2xl font-bold ${medStatus.status==='early'?'bg-gray-400 cursor-not-allowed':'bg-green-500 hover:bg-green-600'}`}>✅ Przyjęty</button>
-                  <button onClick={()=>{}} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-3 md:p-4 rounded-2xl text-lg md:text-xl">⏰ Odłóż 15 min</button>
-                </>:<div className="flex-1 bg-gray-300 text-white p-3 md:p-4 rounded-2xl text-center text-xl md:text-2xl font-bold">✅ Wykonano</div>}
-                <button onClick={()=>deleteMedication(med.id)} className="bg-red-500 hover:bg-red-600 text-white p-3 md:p-4 rounded-2xl text-xl md:text-2xl">🗑️</button>
-              </div>
-            </div>
-          );
-        })}
-        <div className="bg-blue-50 border-4 border-blue-300 p-4 md:p-6 rounded-3xl space-y-4">
-          <h3 className="text-xl md:text-2xl font-bold text-center">➕ Dodaj Nowy Lek</h3>
-          <SmartInput type="text" placeholder="Nazwa leku" value={newMedName} onChange={setNewMedName}/>
-          <SmartInput type="time" value={newMedTime} onChange={setNewMedTime}/>
-          <SmartInput type="text" placeholder="Notatka (np. przed jedzeniem)" value={newMedNote} onChange={setNewMedNote}/>
-          <div>
-            <p className="text-lg md:text-xl font-bold mb-3 text-center">📅 Wybierz dni:</p>
-            <div className="grid grid-cols-7 gap-2">
-              {['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].map(day=>(
-                <button key={day} onClick={()=>toggleDay(day)} className={`p-3 rounded-xl font-bold ${newMedDays.includes(day)?'bg-blue-500 text-white':'bg-gray-200 text-gray-500'}`}>{day}</button>
-              ))}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2 justify-center">
-              <button onClick={()=>setNewMedDays(['Pn','Wt','Śr','Cz','Pt','Sb','Nd'])} className="px-4 py-2 bg-green-500 text-white rounded-xl font-bold">Codziennie</button>
-              <button onClick={()=>setNewMedDays(['Pn','Wt','Śr','Cz','Pt'])} className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold">Pn-Pt</button>
-              <button onClick={()=>setNewMedDays([])} className="px-4 py-2 bg-red-500 text-white rounded-xl font-bold">Wyczyść</button>
-            </div>
-          </div>
-          <button onClick={addMedication} className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj Lek</button>
-        </div>
-      </div>
-    );
+            // NOWE FUNKCJE - TRYB AWARYJNY
+            const activateEmergencyMode = () => {
+                setEmergencyMode(true);
+                setEmergencyCountdown(5);
+                addNotification('🚨 Tryb awaryjny aktywowany!');
+                
+                const countdownInterval = setInterval(() => {
+                    setEmergencyCountdown(prev => {
+                        if (prev <= 1) {
+                            clearInterval(countdownInterval);
+                            sendEmergencyNotifications();
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            };
 
-    const ContactsScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Kontakty Rodzinne</h2>
-        {familyContacts.map(c=>(
-          <div key={c.id} className="bg-white border-4 border-blue-500 p-4 md:p-6 rounded-3xl shadow-xl mb-4">
-            {editingContact===c.id?(
-              <div className="space-y-4">
-                <SmartInput type="text" placeholder="Imię i nazwisko" value={newContactName} onChange={setNewContactName}/>
-                <SmartInput type="tel" placeholder="Numer telefonu z +48" value={newContactPhone} onChange={setNewContactPhone}/>
-                <select value={newContactApp} onChange={e=>setNewContactApp(e.target.value)} className="improved-input"><option value="">Brak aplikacji</option><option value="whatsapp">WhatsApp</option><option value="viber">Viber</option></select>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                  <button onClick={()=>saveEditContact(c.id)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">💾 Zapisz</button>
-                  <button onClick={cancelEditContact} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-3 md:p-4 rounded-2xl text-lg">❌ Anuluj</button>
+            const cancelEmergency = () => {
+                setEmergencyMode(false);
+                setEmergencyCountdown(null);
+                addNotification('Tryb awaryjny anulowany');
+            };
+
+            const sendEmergencyNotifications = () => {
+                const emergencyContacts = familyContacts.filter(contact => contact.emergencyContact);
+                const message = `🚨 PILNA POMOC! Użytkownik ${username || 'Senior'} potrzebuje pomocy! Lokalizacja: ${location || 'nieznana'}`;
+                
+                emergencyContacts.forEach(contact => {
+                    const phone = contact.phone.replace(/[^\d+]/g, '');
+                    if (contact.app === 'whatsapp') {
+                        const encodedMessage = encodeURIComponent(message);
+                        window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`, '_blank');
+                    } else if (contact.app === 'viber') {
+                        window.location.href = `viber://chat?number=${phone}`;
+                    } else {
+                        window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
+                    }
+                });
+                
+                if (sosContacts.length > 0) {
+                    const primarySosContact = sosContacts[0];
+                    window.location.href = `tel:${primarySosContact.phone}`;
+                }
+                
+                addNotification('Wysłano powiadomienia awaryjne do kontaktów');
+                setEmergencyMode(false);
+            };
+
+            // NOWE FUNKCJE - ASYSTENT GŁOSOWY
+            const startVoiceAssistant = () => {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    alert('Twoja przeglądarka nie obsługuje rozpoznawania mowy. Spróbuj użyć Chrome lub Edge.');
+                    return;
+                }
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'pl-PL';
+
+                recognition.onstart = () => {
+                    setIsListening(true);
+                    setVoiceCommand('Słucham...');
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    setVoiceCommand(transcript);
+                    processVoiceCommand(transcript);
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Błąd rozpoznawania mowy:', event.error);
+                    setVoiceCommand(`Błąd: ${event.error}`);
+                    setIsListening(false);
+                };
+
+                recognition.onend = () => {
+                    setIsListening(false);
+                    setTimeout(() => setVoiceCommand(''), 3000);
+                };
+
+                recognition.start();
+            };
+
+            const processVoiceCommand = (command) => {
+                const lowerCommand = command.toLowerCase();
+                
+                // Nawigacja
+                if (lowerCommand.includes('strona główna') || lowerCommand.includes('pulpit')) {
+                    setCurrentScreen('dashboard');
+                    addNotification('Przechodzę do pulpitu');
+                }
+                else if (lowerCommand.includes('leki') || lowerCommand.includes('lek')) {
+                    setCurrentScreen('medications');
+                    addNotification('Przechodzę do zarządzania lekami');
+                }
+                else if (lowerCommand.includes('rodzina') || lowerCommand.includes('kontakty')) {
+                    setCurrentScreen('contacts');
+                    addNotification('Przechodzę do kontaktów rodzinnych');
+                }
+                else if (lowerCommand.includes('usługi') || lowerCommand.includes('służby')) {
+                    setCurrentScreen('services');
+                    addNotification('Przechodzę do usług lokalnych');
+                }
+                else if (lowerCommand.includes('zdrowie')) {
+                    setCurrentScreen('health');
+                    addNotification('Przechodzę do zdrowia');
+                }
+                else if (lowerCommand.includes('ustawienia')) {
+                    setCurrentScreen('settings');
+                    addNotification('Przechodzę do ustawień');
+                }
+                else if (lowerCommand.includes('pogoda')) {
+                    fetchWeather();
+                    addNotification('Sprawdzam pogodę');
+                }
+                else if (lowerCommand.includes('pomoc') || lowerCommand.includes('awaria') || lowerCommand.includes('sos')) {
+                    activateEmergencyMode();
+                }
+                else {
+                    addNotification(`Nie rozpoznano komendy: "${command}"`);
+                }
+            };
+
+            // POZOSTAŁE FUNKCJE
+            useEffect(() => {
+                const handleBeforeInstallPrompt = e => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                    setShowInstallPrompt(true);
+                };
+                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            }, []);
+
+            const handleInstallClick = async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Aplikacja zainstalowana');
+                    addNotification('Aplikacja została zainstalowana!');
+                }
+                setDeferredPrompt(null);
+                setShowInstallPrompt(false);
+            };
+
+            useEffect(() => {
+                localStorage.setItem('medications', JSON.stringify(medications));
+            }, [medications]);
+
+            useEffect(() => {
+                localStorage.setItem('familyContacts', JSON.stringify(familyContacts));
+            }, [familyContacts]);
+
+            useEffect(() => {
+                localStorage.setItem('localServices', JSON.stringify(localServices));
+            }, [localServices]);
+
+            useEffect(() => {
+                localStorage.setItem('medicationHistory', JSON.stringify(medicationHistory));
+            }, [medicationHistory]);
+
+            useEffect(() => {
+                localStorage.setItem('sosContacts', JSON.stringify(sosContacts));
+            }, [sosContacts]);
+
+            // Reset leków o północy
+            useEffect(() => {
+                const checkMidnight = () => {
+                    const now = new Date();
+                    const lastReset = localStorage.getItem('lastMedicationReset');
+                    const today = now.toDateString();
+                    if (lastReset !== today) {
+                        setMedications(prev => prev.map(med => ({ ...med, taken: false })));
+                        localStorage.setItem('lastMedicationReset', today);
+                    }
+                };
+                checkMidnight();
+                const interval = setInterval(checkMidnight, 60000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const addNotification = text => {
+                const newNotif = {
+                    id: Date.now(),
+                    text,
+                    time: new Date().toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'}),
+                    read: false
+                };
+                setNotifications(prev => [newNotif, ...prev]);
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Senior-Easy', { body: text, icon: 'icon-192.png' });
+                }
+            };
+
+            useEffect(() => {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }, []);
+
+            const getMedicationStatus = (medTime) => {
+                const now = new Date();
+                const [hours, minutes] = medTime.split(':');
+                const medDate = new Date();
+                medDate.setHours(parseInt(hours), parseInt(minutes), 0);
+                const diffMinutes = (now - medDate) / (1000 * 60);
+                if (diffMinutes < -30) return { status: 'early', color: 'yellow', icon: '⏰', text: 'Za wcześnie' };
+                if (diffMinutes > 60) return { status: 'late', color: 'red', icon: '⚠️', text: 'Spóźniony' };
+                return { status: 'ontime', color: 'green', icon: '✅', text: 'Czas na lek' };
+            };
+
+            const isMedicationDay = (medDays) => {
+                const days = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
+                const today = days[new Date().getDay()];
+                return medDays.includes(today);
+            };
+
+            const markMedicationTaken = id => {
+                const medication = medications.find(med => med.id === id);
+                if (!medication) return;
+
+                const historyEntry = {
+                    id: Date.now(),
+                    medId: id,
+                    medName: medication.name,
+                    time: new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}),
+                    date: new Date().toLocaleDateString('pl-PL'),
+                    status: getMedicationStatus(medication.time).status
+                };
+                setMedicationHistory(prev => [historyEntry, ...prev].slice(0, 50));
+                setMedications(prev => prev.map(med => med.id === id ? { ...med, taken: true } : med));
+
+                if (careMode) {
+                    setSelectedMedication(medication);
+                    setShowNotifyDialog(true);
+                } else {
+                    addNotification(`Lek "${medication.name}" został przyjęty`);
+                }
+            };
+
+            const postponeMedication = (id) => {
+                const medication = medications.find(med => med.id === id);
+                if (!medication) return;
+                addNotification(`Lek "${medication.name}" - przypomnienie za 15 minut`);
+                setTimeout(() => {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('🔔 Przypomnienie o leku!', {
+                            body: `Czas na lek: ${medication.name}`,
+                            icon: 'icon-192.png',
+                            requireInteraction: true
+                        });
+                    }
+                    addNotification(`🔔 Przypomnienie: ${medication.name}`);
+                }, 15 * 60 * 1000);
+            };
+
+            const sendNotification = (contactId) => {
+                if (!selectedMedication) return;
+                const contact = familyContacts.find(c => c.id === contactId);
+                if (!contact) return;
+                const message = `✅ Lek "${selectedMedication.name}" został przyjęty o godzinie ${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}`;
+                const phone = contact.phone.replace(/[^\d+]/g, '');
+                
+                if (contact.app === 'whatsapp') {
+                    const encodedMessage = encodeURIComponent(message);
+                    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`, '_blank');
+                } else if (contact.app === 'viber') {
+                    window.location.href = `viber://chat?number=${phone}`;
+                    setTimeout(() => {
+                        window.location.href = `viber://forward?text=${encodeURIComponent(message)}`;
+                    }, 500);
+                } else {
+                    const encodedMessage = encodeURIComponent(message);
+                    window.location.href = `sms:${phone}?body=${encodedMessage}`;
+                }
+                addNotification(`Wysłano powiadomienie do ${contact.name}`);
+                setShowNotifyDialog(false);
+                setSelectedMedication(null);
+            };
+
+            const sendToAll = () => {
+                if (!selectedMedication) return;
+                const familyWithApps = familyContacts.filter(c => c.app === 'whatsapp' || c.app === 'viber');
+                const message = `✅ Lek "${selectedMedication.name}" został przyjęty o godzinie ${new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}`;
+                
+                familyWithApps.forEach((contact, index) => {
+                    const phone = contact.phone.replace(/[^\d+]/g, '');
+                    const delay = index * 300;
+                    if (contact.app === 'whatsapp') {
+                        const encodedMessage = encodeURIComponent(message);
+                        setTimeout(() => window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`, '_blank'), delay);
+                    } else if (contact.app === 'viber') {
+                        setTimeout(() => {
+                            window.location.href = `viber://chat?number=${phone}`;
+                            setTimeout(() => {
+                                window.location.href = `viber://forward?text=${encodeURIComponent(message)}`;
+                            }, 400);
+                        }, delay);
+                    }
+                });
+                addNotification(`Wysłano powiadomienie do ${familyWithApps.length} osób`);
+                setShowNotifyDialog(false);
+                setSelectedMedication(null);
+            };
+
+            const addMedication = () => {
+                if (newMedName && newMedTime) {
+                    setMedications(prev => [...prev, {
+                        id: Date.now(),
+                        name: newMedName,
+                        time: newMedTime,
+                        taken: false,
+                        days: newMedDays,
+                        note: newMedNote
+                    }]);
+                    setNewMedName('');
+                    setNewMedTime('');
+                    setNewMedDays(['Pn','Wt','Śr','Cz','Pt','Sb','Nd']);
+                    setNewMedNote('');
+                    // Przewiń do góry po dodaniu
+                    window.scrollTo(0, 0);
+                }
+            };
+
+            const toggleDay = (day) => {
+                setNewMedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+            };
+
+            const deleteMedication = id => setMedications(prev => prev.filter(med => med.id !== id));
+
+            const makeCall = contact => {
+                if (contact.phone) window.location.href = `tel:${contact.phone}`;
+                if (careMode) addNotification(`Połączenie z ${contact.name}`);
+            };
+
+            const startVideoCall = (contact) => {
+                if(!contact) return;
+                const phone = contact.phone.replace(/[^\d+]/g,'');
+                if(contact.app==='whatsapp') {
+                    window.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=📹`;
+                    setTimeout(() => {
+                        window.location.href = `whatsapp://send?phone=${phone}`;
+                    }, 100);
+                } else if(contact.app==='viber') {
+                    window.location.href = `viber://contact?number=${phone}`;
+                } else {
+                    alert('Brak zdefiniowanej aplikacji wideo. Używam standardowego połączenia telefonicznego.');
+                    window.location.href = `tel:${phone}`;
+                }
+                if(careMode) addNotification(`Rozmowa wideo z ${contact.name}`);
+            };
+
+            const addContact = () => {
+                if (newContactName && newContactPhone) {
+                    setFamilyContacts(prev => [...prev, {
+                        id: Date.now(),
+                        name: newContactName,
+                        phone: newContactPhone,
+                        avatar: '👤',
+                        app: newContactApp,
+                        emergencyContact: true
+                    }]);
+                    setNewContactName('');
+                    setNewContactPhone('');
+                    setNewContactApp('');
+                    // Przewiń do góry po dodaniu
+                    window.scrollTo(0, 0);
+                }
+            };
+
+            const deleteContact = id => setFamilyContacts(prev => prev.filter(c => c.id !== id));
+
+            const startEditContact = contact => {
+                setEditingContact(contact.id);
+                setNewContactName(contact.name);
+                setNewContactPhone(contact.phone);
+                setNewContactApp(contact.app);
+            };
+
+            const saveEditContact = id => {
+                setFamilyContacts(prev => prev.map(c => c.id === id ? {
+                    ...c,
+                    name: newContactName,
+                    phone: newContactPhone,
+                    app: newContactApp
+                } : c));
+                setEditingContact(null);
+                setNewContactName('');
+                setNewContactPhone('');
+                setNewContactApp('');
+            };
+
+            const cancelEditContact = () => {
+                setEditingContact(null);
+                setNewContactName('');
+                setNewContactPhone('');
+                setNewContactApp('');
+            };
+
+            const addService = () => {
+                if (newServiceName && newServicePhone) {
+                    setLocalServices(prev => [...prev, {
+                        id: Date.now(),
+                        name: newServiceName,
+                        phone: newServicePhone,
+                        icon: newServiceIcon || '🏢'
+                    }]);
+                    setNewServiceName('');
+                    setNewServicePhone('');
+                    setNewServiceIcon('');
+                    // Przewiń do góry po dodaniu
+                    window.scrollTo(0, 0);
+                }
+            };
+
+            const deleteService = id => setLocalServices(prev => prev.filter(s => s.id !== id));
+
+            const startEditService = service => {
+                setEditingService(service.id);
+                setNewServiceName(service.name);
+                setNewServicePhone(service.phone);
+                setNewServiceIcon(service.icon);
+            };
+
+            const saveEditService = id => {
+                setLocalServices(prev => prev.map(s => s.id === id ? {
+                    ...s,
+                    name: newServiceName,
+                    phone: newServicePhone,
+                    icon: newServiceIcon || '🏢'
+                } : s));
+                setEditingService(null);
+                setNewServiceName('');
+                setNewServicePhone('');
+                setNewServiceIcon('');
+            };
+
+            const cancelEditService = () => {
+                setEditingService(null);
+                setNewServiceName('');
+                setNewServicePhone('');
+                setNewServiceIcon('');
+            };
+
+            const clearData = () => {
+                if (confirm('Czy na pewno chcesz wyczyścić wszystkie zapisane dane?')) {
+                    localStorage.clear();
+                    setMedications([]);
+                    setFamilyContacts([]);
+                    setLocalServices([]);
+                    setNotifications([]);
+                    setHealthData({});
+                    setReminders([]);
+                    setIsLoggedIn(false);
+                    setUsername('');
+                    addNotification('Wszystkie dane zostały wyczyszczone');
+                }
+            };
+
+            // NOWE FUNKCJE - ZDROWIE
+            const updateHealthData = (field, value) => {
+                const updatedData = {
+                    ...healthData,
+                    [field]: value,
+                    lastUpdate: new Date().toLocaleDateString('pl-PL')
+                };
+                setHealthData(updatedData);
+                localStorage.setItem('healthData', JSON.stringify(updatedData));
+                addNotification(`Zaktualizowano dane zdrowotne: ${field}`);
+            };
+
+            // NOWE FUNKCJE - PRZYPOMNIENIA
+            const addReminder = () => {
+                if (newReminderText && newReminderTime) {
+                    const newReminder = {
+                        id: Date.now(),
+                        text: newReminderText,
+                        time: newReminderTime,
+                        completed: false,
+                        date: new Date().toLocaleDateString('pl-PL')
+                    };
+                    setReminders(prev => [...prev, newReminder]);
+                    setNewReminderText('');
+                    setNewReminderTime('');
+                    localStorage.setItem('reminders', JSON.stringify([...reminders, newReminder]));
+                    addNotification('Dodano nowe przypomnienie');
+                }
+            };
+
+            const toggleReminder = (id) => {
+                const updatedReminders = reminders.map(reminder => 
+                    reminder.id === id ? { ...reminder, completed: !reminder.completed } : reminder
+                );
+                setReminders(updatedReminders);
+                localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+            };
+
+            const deleteReminder = (id) => {
+                const updatedReminders = reminders.filter(reminder => reminder.id !== id);
+                setReminders(updatedReminders);
+                localStorage.setItem('reminders', JSON.stringify(updatedReminders));
+            };
+
+            // EKRAN PULPITU
+            const DashboardScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">
+                        Witaj, {username || 'Użytkowniku'}! 👋
+                    </h2>
+
+                    {/* KAFELKI SZYBKIEGO DOSTĘPU */}
+                    <div className="grid grid-cols-1 gap-3 md:gap-4">
+                        <button onClick={() => setCurrentScreen('video')} className="bg-green-500 hover:bg-green-600 text-white p-6 rounded-2xl flex flex-col items-center justify-center space-y-2 min-h-[120px]">
+                            <span className="text-4xl">📹</span>
+                            <span className="text-xl font-bold">Rozmowa Wideo</span>
+                        </button>
+                        <button onClick={() => setCurrentScreen('medications')} className="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-2xl flex flex-col items-center justify-center space-y-2 min-h-[120px]">
+                            <span className="text-4xl">💊</span>
+                            <span className="text-xl font-bold">Leki</span>
+                        </button>
+                        <button onClick={() => setCurrentScreen('contacts')} className="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-2xl flex flex-col items-center justify-center space-y-2 min-h-[120px]">
+                            <span className="text-4xl">👨‍👩‍👧‍👦</span>
+                            <span className="text-xl font-bold">Rodzina</span>
+                        </button>
+                        <button onClick={() => setCurrentScreen('services')} className="bg-orange-500 hover:bg-orange-600 text-white p-6 rounded-2xl flex flex-col items-center justify-center space-y-2 min-h-[120px]">
+                            <span className="text-4xl">📍</span>
+                            <span className="text-xl font-bold">Usługi</span>
+                        </button>
+                    </div>
+
+                    {/* PRZYPOMNIENIA NA DZIŚ */}
+                    <div className="bg-white border-4 border-blue-300 p-4 rounded-3xl">
+                        <h3 className="text-xl font-bold mb-3 text-center">📋 Dzisiejsze zadania</h3>
+                        <div className="space-y-2">
+                            {medications.filter(med => isMedicationDay(med.days) && !med.taken).slice(0, 3).map(med => (
+                                <div key={med.id} className="flex items-center justify-between p-2 bg-yellow-50 rounded-xl">
+                                    <span className="font-bold">💊 {med.name}</span>
+                                    <span className="text-sm">{med.time}</span>
+                                </div>
+                            ))}
+                            {reminders.filter(r => !r.completed).slice(0, 2).map(reminder => (
+                                <div key={reminder.id} className="flex items-center justify-between p-2 bg-blue-50 rounded-xl">
+                                    <span className="font-bold">📝 {reminder.text}</span>
+                                    <span className="text-sm">{reminder.time}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* PORADA DNIA */}
+                    <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-3xl text-center">
+                        <h3 className="text-xl font-bold mb-2">💡 Porada dnia</h3>
+                        <p className="text-lg">{dailyTips[currentTipIndex]}</p>
+                        <button 
+                            onClick={() => setCurrentTipIndex((currentTipIndex + 1) % dailyTips.length)}
+                            className="mt-2 bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-bold"
+                        >
+                            Następna porada
+                        </button>
+                    </div>
+
+                    {/* POGODA */}
+                    <div className="bg-white border-4 border-yellow-300 p-4 rounded-3xl text-center">
+                        <h3 className="text-xl font-bold mb-2">🌤️ Pogoda</h3>
+                        {weatherLoading ? (
+                            <div className="py-4">
+                                <div className="text-lg">Ładowanie pogody...</div>
+                            </div>
+                        ) : weatherData ? (
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-center space-x-4">
+                                    <span className="text-4xl">{weatherData.icon}</span>
+                                    <div>
+                                        <div className="text-2xl font-bold">{weatherData.temperature}°C</div>
+                                        <div className="text-lg">{weatherData.condition}</div>
+                                        <div className="text-sm text-gray-600">{weatherData.city}</div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div className="bg-blue-50 p-2 rounded-lg">
+                                        <div>💨 Wiatr</div>
+                                        <div className="font-bold">{weatherData.wind} km/h</div>
+                                    </div>
+                                    <div className="bg-blue-50 p-2 rounded-lg">
+                                        <div>💧 Wilgotność</div>
+                                        <div className="font-bold">{weatherData.humidity}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="py-4">
+                                <div className="text-lg text-gray-500">Brak danych pogodowych</div>
+                            </div>
+                        )}
+                        <button 
+                            onClick={fetchWeather}
+                            disabled={weatherLoading}
+                            className={`mt-3 w-full py-2 rounded-lg font-bold ${
+                                weatherLoading ? 'bg-gray-400' : 'bg-yellow-500 hover:bg-yellow-600'
+                            } text-white`}
+                        >
+                            {weatherLoading ? 'Ładowanie...' : '🔄 Odśwież pogodę'}
+                        </button>
+                    </div>
                 </div>
-              </div>
-            ):(
-              <>
-                <div className="flex items-center space-x-4 md:space-x-6 mb-4"><span className="text-5xl md:text-6xl">{c.avatar}</span><div className="flex-1"><div className="text-2xl md:text-3xl font-bold">{c.name}</div><div className="text-lg md:text-xl text-gray-500">{c.phone}</div><div className="text-base md:text-lg text-gray-400">{c.app?`(${c.app})`:''}</div></div></div>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                  <button onClick={()=>window.location.href=`tel:${c.phone}`} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">📞 Zadzwoń</button>
-                  <button onClick={()=>{window.location.href=`https://api.whatsapp.com/send?phone=${c.phone.replace(/[^\d+]/g,'')}&text=${encodeURIComponent('📹')}`}} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-3 md:p-4 rounded-2xl text-lg">🎥 Wideo</button>
+            );
+
+            // EKRAN ZDROWIA
+            const HealthScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">❤️ Moje Zdrowie</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white border-4 border-red-300 p-4 rounded-3xl">
+                            <h3 className="text-xl font-bold mb-3 text-center">🩸 Ciśnienie krwi</h3>
+                            <SmartInput
+                                type="text"
+                                placeholder="np. 120/80"
+                                value={healthData.bloodPressure}
+                                onChange={(value) => updateHealthData('bloodPressure', value)}
+                                className="text-center"
+                            />
+                        </div>
+                        
+                        <div className="bg-white border-4 border-green-300 p-4 rounded-3xl">
+                            <h3 className="text-xl font-bold mb-3 text-center">💓 Tętno</h3>
+                            <SmartInput
+                                type="text"
+                                placeholder="np. 72"
+                                value={healthData.heartRate}
+                                onChange={(value) => updateHealthData('heartRate', value)}
+                                className="text-center"
+                            />
+                        </div>
+                        
+                        <div className="bg-white border-4 border-blue-300 p-4 rounded-3xl">
+                            <h3 className="text-xl font-bold mb-3 text-center">🩸 Cukier we krwi</h3>
+                            <SmartInput
+                                type="text"
+                                placeholder="np. 95"
+                                value={healthData.bloodSugar}
+                                onChange={(value) => updateHealthData('bloodSugar', value)}
+                                className="text-center"
+                            />
+                        </div>
+                        
+                        <div className="bg-white border-4 border-purple-300 p-4 rounded-3xl">
+                            <h3 className="text-xl font-bold mb-3 text-center">⚖️ Waga</h3>
+                            <SmartInput
+                                type="text"
+                                placeholder="np. 70 kg"
+                                value={healthData.weight}
+                                onChange={(value) => updateHealthData('weight', value)}
+                                className="text-center"
+                            />
+                        </div>
+                    </div>
+
+                    {healthData.lastUpdate && (
+                        <div className="bg-gray-100 p-4 rounded-2xl text-center">
+                            <p className="text-lg">Ostatnia aktualizacja: {healthData.lastUpdate}</p>
+                        </div>
+                    )}
                 </div>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 mt-3">
-                  <button onClick={()=>startEditContact(c)} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white p-3 md:p-4 rounded-2xl text-lg">✏️ Edytuj</button>
-                  <button onClick={()=>deleteContact(c.id)} className="flex-1 bg-red-500 hover:bg-red-600 text-white p-3 md:p-4 rounded-2xl text-lg">🗑️ Usuń</button>
+            );
+
+            // EKRAN PRZYPOMNIEŃ
+            const RemindersScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">📝 Moje Przypomnienia</h2>
+                    
+                    {reminders.map(reminder => (
+                        <div key={reminder.id} className={`bg-white border-4 p-4 rounded-3xl ${reminder.completed ? 'border-gray-300 opacity-60' : 'border-blue-500'}`}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                    <div className={`text-xl font-bold ${reminder.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                        {reminder.text}
+                                    </div>
+                                    <div className="text-gray-600">⏰ {reminder.time} | 📅 {reminder.date}</div>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button 
+                                        onClick={() => toggleReminder(reminder.id)}
+                                        className={`p-2 rounded-xl ${reminder.completed ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                                    >
+                                        {reminder.completed ? '↶' : '✓'}
+                                    </button>
+                                    <button 
+                                        onClick={() => deleteReminder(reminder.id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-xl"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    <div className="bg-blue-50 border-4 border-blue-300 p-4 rounded-3xl space-y-4">
+                        <h3 className="text-xl font-bold text-center">➕ Dodaj Nowe Przypomnienie</h3>
+                        <SmartInput
+                            type="text"
+                            placeholder="Treść przypomnienia"
+                            value={newReminderText}
+                            onChange={setNewReminderText}
+                        />
+                        <SmartInput
+                            type="time"
+                            placeholder="Godzina"
+                            value={newReminderTime}
+                            onChange={setNewReminderTime}
+                        />
+                        <button 
+                            onClick={addReminder}
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold p-3 rounded-2xl"
+                        >
+                            ➕ Dodaj Przypomnienie
+                        </button>
+                    </div>
                 </div>
-              </>
-            )}
-          </div>
-        ))}
-        <div className="bg-blue-50 border-4 border-blue-300 p-4 md:p-6 rounded-3xl space-y-4">
-          <h3 className="text-xl md:text-2xl font-bold text-center">Dodaj Kontakt</h3>
-          <SmartInput type="text" placeholder="Imię i nazwisko" value={newContactName} onChange={setNewContactName}/>
-          <SmartInput type="tel" placeholder="Numer telefonu z +48" value={newContactPhone} onChange={setNewContactPhone}/>
-          <select value={newContactApp} onChange={e=>setNewContactApp(e.target.value)} className="improved-input"><option value="">Brak aplikacji</option><option value="whatsapp">WhatsApp</option><option value="viber">Viber</option></select>
-          <button onClick={addContact} className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj Kontakt</button>
-        </div>
-      </div>
-    );
+            );
 
-    const ServicesScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Lokalne Usługi</h2>
-        {localServices.map(s=>(
-          <div key={s.id} className="bg-white border-4 border-orange-500 p-4 md:p-6 rounded-3xl shadow-xl mb-4">
-            {editingService===s.id?(
-              <div className="space-y-4">
-                <SmartInput type="text" placeholder="Nazwa" value={newServiceName} onChange={setNewServiceName}/>
-                <SmartInput type="tel" placeholder="Telefon" value={newServicePhone} onChange={setNewServicePhone}/>
-                <SmartInput type="text" placeholder="Emoji/Ikona" value={newServiceIcon} onChange={setNewServiceIcon}/>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                  <button onClick={()=>saveEditService(s.id)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">💾 Zapisz</button>
-                  <button onClick={cancelEditService} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-3 md:p-4 rounded-2xl text-lg">❌ Anuluj</button>
+            // EKRAN ZMIANY HASŁA
+            const ChangePasswordScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">🔐 Zmiana Hasła</h2>
+                    
+                    <div className="bg-white border-4 border-blue-500 p-6 rounded-3xl space-y-4">
+                        <div>
+                            <label className="block text-lg font-bold mb-2">Obecne hasło:</label>
+                            <SmartInput
+                                type="password"
+                                value={currentPassword}
+                                onChange={setCurrentPassword}
+                                placeholder="Wprowadź obecne hasło"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-lg font-bold mb-2">Nowe hasło:</label>
+                            <SmartInput
+                                type="password"
+                                value={newPassword}
+                                onChange={setNewPassword}
+                                placeholder="Wprowadź nowe hasło (min. 4 znaki)"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-lg font-bold mb-2">Potwierdź nowe hasło:</label>
+                            <SmartInput
+                                type="password"
+                                value={confirmPassword}
+                                onChange={setConfirmPassword}
+                                placeholder="Powtórz nowe hasło"
+                            />
+                        </div>
+                        
+                        <button 
+                            onClick={changePassword}
+                            className="w-full bg-green-500 hover:bg-green-600 text-white text-xl font-bold p-4 rounded-2xl"
+                        >
+                            💾 Zmień Hasło
+                        </button>
+                    </div>
+                    
+                    <div className="bg-yellow-50 border-4 border-yellow-300 p-4 rounded-3xl">
+                        <h3 className="text-lg font-bold mb-2">💡 Wskazówki dotyczące hasła:</h3>
+                        <ul className="list-disc list-inside text-sm space-y-1">
+                            <li>Hasło powinno mieć co najmniej 4 znaki</li>
+                            <li>Używaj kombinacji liter i cyfr dla lepszego bezpieczeństwa</li>
+                            <li>Nie używaj łatwych do odgadnięcia haseł</li>
+                        </ul>
+                    </div>
                 </div>
-              </div>
-            ):(
-              <>
-                <div className="flex items-center space-x-4 md:space-x-6 mb-4"><span className="text-5xl md:text-6xl">{s.icon}</span><div className="flex-1"><div className="text-2xl md:text-3xl font-bold">{s.name}</div><div className="text-lg md:text-xl text-gray-500">{s.phone}</div></div></div>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-                  <button onClick={()=>window.location.href=`tel:${s.phone}`} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">📞 Zadzwoń</button>
+            );
+
+            // EKRAN NUMERÓW SOS
+            const SosContactsScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">🚨 Numery Alarmowe SOS</h2>
+                    
+                    <div className="bg-red-50 border-4 border-red-300 p-4 rounded-3xl">
+                        <h3 className="text-xl font-bold text-center mb-4">⚠️ Ważne informacje</h3>
+                        <p className="text-center text-lg">
+                            Te numery zostaną automatycznie wybrane w trybie awaryjnym. 
+                            Pierwszy numer na liście będzie używany do natychmiastowego połączenia.
+                        </p>
+                    </div>
+
+                    {sosContacts.map((contact, index) => (
+                        <div key={contact.id} className="bg-white border-4 border-red-500 p-4 rounded-3xl">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="text-lg font-bold text-red-600">
+                                    #{index + 1} {index === 0 && '🏃‍♂️ (Główny)'}
+                                </div>
+                                {sosContacts.length > 1 && (
+                                    <button 
+                                        onClick={() => removeSosContact(contact.id)}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
+                                    >
+                                        🗑️ Usuń
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">Nazwa służby:</label>
+                                    <SmartInput
+                                        type="text"
+                                        value={contact.name}
+                                        onChange={(value) => updateSosContact(contact.id, 'name', value)}
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">Numer telefonu:</label>
+                                    <SmartInput
+                                        type="tel"
+                                        value={contact.phone}
+                                        onChange={(value) => updateSosContact(contact.id, 'phone', value)}
+                                        placeholder="np. 999, 112, 997"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">Opis:</label>
+                                    <SmartInput
+                                        type="text"
+                                        value={contact.description}
+                                        onChange={(value) => updateSosContact(contact.id, 'description', value)}
+                                        placeholder="Krótki opis kiedy dzwonić"
+                                    />
+                                </div>
+                                
+                                <button 
+                                    onClick={() => window.location.href = `tel:${contact.phone}`}
+                                    className="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl font-bold"
+                                >
+                                    📞 Zadzwoń teraz
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    <div className="flex space-x-3">
+                        <button 
+                            onClick={addSosContact}
+                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-2xl text-lg font-bold"
+                        >
+                            ➕ Dodaj Numer
+                        </button>
+                        
+                        <button 
+                            onClick={saveSosContacts}
+                            className="flex-1 bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-lg font-bold"
+                        >
+                            💾 Zapisz Zmiany
+                        </button>
+                    </div>
                 </div>
-                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 mt-3">
-                  <button onClick={()=>startEditService(s)} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white p-3 md:p-4 rounded-2xl text-lg">✏️ Edytuj</button>
-                  <button onClick={()=>deleteService(s.id)} className="flex-1 bg-red-500 hover:bg-red-600 text-white p-3 md:p-4 rounded-2xl text-lg">🗑️ Usuń</button>
+            );
+
+            // EKRAN ROZMOWY WIDEO
+            const VideoCallScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">Rozmowa Wideo</h2>
+                    {familyContacts.map(c=>(
+                        <button key={c.id} onClick={()=>startVideoCall(c)} className="w-full bg-white hover:bg-green-50 active:bg-green-100 border-4 border-green-500 p-6 md:p-8 rounded-3xl shadow-xl flex items-center space-x-4 md:space-x-6 mb-4 transition-colors">
+                            <span className="text-5xl md:text-6xl">{c.avatar}</span>
+                            <div className="flex-1 text-left">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-800">{c.name}</div>
+                                <div className="text-lg md:text-xl text-gray-500">{c.phone}</div>
+                                <div className="text-base md:text-lg text-gray-400">{c.app?`(${c.app})`:''}</div>
+                            </div>
+                            <span className="text-4xl md:text-5xl">📹</span>
+                        </button>
+                    ))}
                 </div>
-              </>
-            )}
-          </div>
-        ))}
-        <div className="bg-orange-50 border-4 border-orange-300 p-4 md:p-6 rounded-3xl space-y-4">
-          <h3 className="text-xl md:text-2xl font-bold text-center">Dodaj Usługę</h3>
-          <SmartInput type="text" placeholder="Nazwa" value={newServiceName} onChange={setNewServiceName}/>
-          <SmartInput type="tel" placeholder="Telefon" value={newServicePhone} onChange={setNewServicePhone}/>
-          <SmartInput type="text" placeholder="Emoji/Ikona" value={newServiceIcon} onChange={setNewServiceIcon}/>
-          <button onClick={addService} className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj Usługę</button>
-        </div>
-      </div>
-    );
+            );
 
-    const HealthScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">❤️ Moje Zdrowie</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border-4 border-red-300 p-4 rounded-3xl"><h3 className="text-xl font-bold mb-3 text-center">🩸 Ciśnienie krwi</h3><SmartInput type="text" placeholder="np. 120/80" value={healthData.bloodPressure} onChange={v=>updateHealthData('bloodPressure',v)}/></div>
-          <div className="bg-white border-4 border-green-300 p-4 rounded-3xl"><h3 className="text-xl font-bold mb-3 text-center">💓 Tętno</h3><SmartInput type="text" placeholder="np. 72" value={healthData.heartRate} onChange={v=>updateHealthData('heartRate',v)}/></div>
-          <div className="bg-white border-4 border-blue-300 p-4 rounded-3xl"><h3 className="text-xl font-bold mb-3 text-center">🩸 Cukier</h3><SmartInput type="text" placeholder="np. 95" value={healthData.bloodSugar} onChange={v=>updateHealthData('bloodSugar',v)}/></div>
-          <div className="bg-white border-4 border-purple-300 p-4 rounded-3xl"><h3 className="text-xl font-bold mb-3 text-center">⚖️ Waga</h3><SmartInput type="text" placeholder="np. 70 kg" value={healthData.weight} onChange={v=>updateHealthData('weight',v)}/></div>
-        </div>
-      </div>
-    );
-
-    const RemindersScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">📝 Moje Przypomnienia</h2>
-        {reminders.map(r=>(
-          <div key={r.id} className={`bg-white border-4 p-4 rounded-3xl ${r.completed?'border-gray-300 opacity-60':'border-blue-500'}`}>
-            <div className="flex items-center justify-between"><div className="flex-1"><div className={`text-xl font-bold ${r.completed?'line-through text-gray-500':''}`}>{r.text}</div><div className="text-gray-600">⏰ {r.time} | 📅 {r.date}</div></div>
-              <div className="flex space-x-2"><button onClick={()=>toggleReminder(r.id)} className={`p-2 rounded-xl ${r.completed?'bg-yellow-500 hover:bg-yellow-600':'bg-green-500 hover:bg-green-600'} text-white`}>{r.completed?'↶':'✓'}</button><button onClick={()=>deleteReminder(r.id)} className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-xl">🗑️</button></div>
-            </div>
-          </div>
-        ))}
-        <div className="bg-blue-50 border-4 border-blue-300 p-4 md:p-6 rounded-3xl space-y-4">
-          <h3 className="text-xl md:text-2xl font-bold text-center">➕ Dodaj Nowe Przypomnienie</h3>
-          <SmartInput type="text" placeholder="Treść przypomnienia" value={newReminderText} onChange={setNewReminderText}/>
-          <SmartInput type="time" value={newReminderTime} onChange={setNewReminderTime}/>
-          <button onClick={addReminder} className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj</button>
-        </div>
-      </div>
-    );
-
-    const SosContactsScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">🚨 Numery Alarmowe SOS</h2>
-        <div className="bg-red-50 border-4 border-red-300 p-4 rounded-3xl"><h3 className="text-xl font-bold text-center mb-4">⚠️ Ważne informacje</h3><p className="text-center text-lg">Te numery zostaną automatycznie wybrane w trybie awaryjnym. Pierwszy numer na liście będzie używany do natychmiastowego połączenia.</p></div>
-        {sosContacts.map((contact,i)=>(
-          <div key={contact.id} className="bg-white border-4 border-red-500 p-4 rounded-3xl">
-            <div className="flex items-center justify-between mb-3"><div className="text-lg font-bold text-red-600">#{i+1} {i===0&&'🏃‍♂️ (Główny)'}</div>{sosContacts.length>1&&<button onClick={()=>removeSosContact(contact.id)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm">🗑️ Usuń</button>}</div>
-            <div className="space-y-3">
-              <div><label className="block text-sm font-bold mb-1">Nazwa służby:</label><SmartInput type="text" value={contact.name} onChange={v=>updateSosContact(contact.id,'name',v)}/></div>
-              <div><label className="block text-sm font-bold mb-1">Numer telefonu:</label><SmartInput type="tel" value={contact.phone} onChange={v=>updateSosContact(contact.id,'phone',v)} placeholder="np. 999, 112, 997"/></div>
-              <div><label className="block text-sm font-bold mb-1">Opis:</label><SmartInput type="text" value={contact.description} onChange={v=>updateSosContact(contact.id,'description',v)} placeholder="Krótki opis kiedy dzwonić"/></div>
-              <button onClick={()=>window.location.href=`tel:${contact.phone}`} className="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl font-bold">📞 Zadzwoń teraz</button>
-            </div>
-          </div>
-        ))}
-        <div className="flex space-x-3"><button onClick={addSosContact} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-2xl text-lg font-bold">➕ Dodaj Numer</button><button onClick={saveSosContacts} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-lg font-bold">💾 Zapisz Zmiany</button></div>
-      </div>
-    );
-
-    const ChangePasswordScreen=()=>(
-      <div className="space-y-4 md:space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">🔐 Zmiana Hasła</h2>
-        <div className="bg-white border-4 border-blue-500 p-6 rounded-3xl space-y-4">
-          <div><label className="block text-lg font-bold mb-2">Obecne hasło:</label><SmartInput type="password" value={currentPassword} onChange={setCurrentPassword} placeholder="Wprowadź obecne hasło"/></div>
-          <div><label className="block text-lg font-bold mb-2">Nowe hasło:</label><SmartInput type="password" value={newPassword} onChange={setNewPassword} placeholder="Minimum 4 znaki"/></div>
-          <div><label className="block text-lg font-bold mb-2">Powtórz nowe hasło:</label><SmartInput type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="Powtórz"/></div>
-          <button onClick={changePassword} className="w-full bg-green-500 hover:bg-green-600 text-white text-xl font-bold p-4 rounded-2xl">💾 Zmień Hasło</button>
-        </div>
-      </div>
-    );
-
-    const SettingsScreen=()=>(
-      <div className="space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Ustawienia</h2>
-        <div className="bg-white border-4 border-blue-500 p-6 rounded-3xl shadow-xl"><div className="flex items-center justify-between mb-6"><div className="flex-1 pr-4"><div className="text-2xl md:text-3xl font-bold">Użytkownik: {username}</div><div className="text-lg md:text-xl text-gray-600 mt-2">Zalogowany</div></div><button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold">Wyloguj</button></div></div>
-        <div className="bg-white border-4 border-green-500 p-6 rounded-3xl shadow-xl"><h3 className="text-2xl md:text-3xl font-bold text-center mb-4">🔐 Bezpieczeństwo</h3><div className="space-y-4"><button onClick={()=>setCurrentScreen('password')} className="w-full bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-2xl text-xl font-bold">🔑 Zmień Hasło</button><button onClick={()=>setCurrentScreen('sos')} className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold">🚨 Zarządzaj Numerami SOS</button></div></div>
-        <div className="bg-white border-4 border-blue-500 p-6 rounded-3xl shadow-xl"><div className="flex items-center justify-between mb-6"><div className="flex-1 pr-4"><div className="text-2xl md:text-3xl font-bold">Tryb Opieki Rodzinnej</div><div className="text-lg md:text-xl text-gray-600 mt-2">Rodzina otrzymuje powiadomienia</div></div><button onClick={()=>setCareMode(!careMode)} className={`w-24 md:w-32 h-12 md:h-16 rounded-full transition-all ${careMode?'bg-green-500':'bg-gray-300'} relative flex-shrink-0`}><div className={`w-8 md:w-12 h-8 md:h-12 bg-white rounded-full absolute top-2 transition-all ${careMode?'left-12 md:left-16':'left-2'}`}></div></button></div><div className="text-lg md:text-xl text-gray-600 bg-blue-50 p-4 rounded-2xl">{careMode?'✓ Tryb aktywny':'✗ Tryb wyłączony'}</div></div>
-        <div className="bg-white border-4 border-green-500 p-6 rounded-3xl shadow-xl"><h3 className="text-2xl md:text-3xl font-bold text-center mb-4">🌤️ Pogoda</h3><button onClick={fetchWeather} className="w-full bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-xl font-bold">Pobierz aktualną pogodę</button></div>
-        <div className="bg-purple-50 border-4 border-purple-300 p-6 rounded-3xl"><h3 className="text-2xl md:text-3xl font-bold text-center mb-4">Informacje o Aplikacji</h3><div className="space-y-3 text-lg md:text-xl text-gray-700"><p><strong>Wersja:</strong> 4.0 PWA</p><p><strong>Typ:</strong> Progressive Web App</p><p><strong>Wsparcie:</strong> +480 800 800</p></div></div>
-        <div className="bg-red-50 border-4 border-red-300 p-6 rounded-3xl text-center"><h3 className="text-2xl md:text-3xl font-bold text-red-600 mb-4">⚠️ Niebezpieczna strefa</h3><button onClick={()=>{if(confirm('Na pewno?')){localStorage.clear();location.reload();}}} className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold">🗑️ Wyczyść wszystkie dane</button></div>
-      </div>
-    );
-
-    // GŁÓWNY RENDER
-    return (
-      <>
-        {emergencyMode&&(
-          <div className="fixed inset-0 bg-red-600 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 text-center max-w-md w-full">
-              <div className="text-6xl mb-4">🚨</div><h3 className="text-3xl font-bold text-red-600 mb-4">TRYB AWARYJNY</h3>
-              <p className="text-xl mb-4">Powiadomienia zostaną wysłane za:</p><div className="text-5xl font-bold text-red-600 mb-6">{emergencyCountdown}</div>
-              <div className="space-y-3">
-                <button onClick={cancelEmergency} className="w-full bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-xl font-bold">✅ ANULUJ – WSZYSTKO W PORZĄDKU</button>
-                <button onClick={sendEmergencyNotifications} className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold">🚨 WYŚLIJ NATYCHMIAST</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!isLoggedIn?(
-          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center max-w-md mx-auto mt-8">
-            <h1 className="text-4xl font-bold text-blue-600 mb-2">Senior-Easy</h1>
-            <p className="text-xl text-gray-600 mb-6">Zaloguj się do aplikacji</p>
-            <div className="space-y-4">
-              <SmartInput type="text" placeholder="Nazwa użytkownika" value={username} onChange={setUsername}/>
-              <SmartInput type="password" placeholder="Hasło (domyślnie: senior123)" value={password} onChange={setPassword}/>
-              <button onClick={handleLogin} className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold p-4 rounded-2xl">🔐 Zaloguj się</button>
-            </div>
-            <p className="text-gray-500 mt-4 text-sm">Domyślne hasło: senior123</p>
-          </div>
-        ):(
-          <>
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-4 mb-4 sm:mb-6 flex justify-between items-center">
-              <button onClick={()=>setCurrentScreen('dashboard')} className="bg-blue-500 hover:bg-blue-600 text-white p-2 sm:p-4 rounded-xl sm:rounded-2xl"><span className="text-3xl sm:text-5xl">🏠</span></button>
-              <div className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 px-2 text-center">
-                {currentScreen==='dashboard'?'Pulpit':currentScreen==='video'?'Rozmowa Wideo':currentScreen==='medications'?'Leki':currentScreen==='contacts'?'Rodzina':currentScreen==='services'?'Usługi':currentScreen==='health'?'Zdrowie':currentScreen==='reminders'?'Przypomnienia':currentScreen==='password'?'Zmiana Hasła':currentScreen==='sos'?'Numery SOS':currentScreen==='settings'?'Ustawienia':'Strona Główna'}
-              </div>
-              <button onClick={()=>setCurrentScreen('settings')} className="bg-gray-500 hover:bg-gray-600 text-white p-2 sm:p-4 rounded-xl sm:rounded-2xl"><span className="text-3xl sm:text-5xl">⚙️</span></button>
-            </div>
-
-            <div className="fixed bottom-20 right-4 z-40">
-              <button onClick={activateEmergencyMode} className="emergency-pulse bg-red-500 hover:bg-red-600 text-white p-6 rounded-full shadow-2xl text-3xl">🆘</button>
-            </div>
-
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8">
-              {currentScreen==='dashboard'&&<DashboardScreen/>}
-              {currentScreen==='health'&&<HealthScreen/>}
-              {currentScreen==='reminders'&&<RemindersScreen/>}
-              {currentScreen==='password'&&<ChangePasswordScreen/>}
-              {currentScreen==='sos'&&<SosContactsScreen/>}
-              {currentScreen==='video'&&<ServicesScreen/>} {/* uproszczone – tylko kontakty */}
-              {currentScreen==='services'&&<ServicesScreen/>}
-              {currentScreen==='contacts'&&<ContactsScreen/>}
-              {currentScreen==='medications'&&<MedicationsScreen/>}
-              {currentScreen==='settings'&&<SettingsScreen/>}
-              {currentScreen==='home'&&(
-                <div className="space-y-4 sm:space-y-6 text-center">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-600 mb-2">Senior-Easy</h1>
-                  <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-4">Witaj! Co chcesz zrobić?</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                    <button onClick={()=>setCurrentScreen('video')} className="bg-green-500 hover:bg-green-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">📹</span><span className="text-xl font-bold">Rozmowa Wideo</span></button>
-                    <button onClick={()=>setCurrentScreen('medications')} className="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">💊</span><span className="text-xl font-bold">Leki</span></button>
-                    <button onClick={()=>setCurrentScreen('contacts')} className="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">👨‍👩‍👧‍👦</span><span className="text-xl font-bold">Rodzina</span></button>
-                    <button onClick={()=>setCurrentScreen('services')} className="bg-orange-500 hover:bg-orange-600 text-white p-6 rounded-2xl flex flex-col items-center space-y-2"><span className="text-4xl">📍</span><span className="text-xl font-bold">Usługi</span></button>
-                  </div>
+            // EKRAN USŁUG
+            const ServicesScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">Lokalne Usługi</h2>
+                    {localServices.map(s=>(
+                        <div key={s.id} className="bg-white border-4 border-orange-500 p-4 md:p-6 rounded-3xl shadow-xl mb-4">
+                            {editingService === s.id ? (
+                                <div className="space-y-4">
+                                    <SmartInput 
+                                        type="text" 
+                                        placeholder="Nazwa" 
+                                        value={newServiceName} 
+                                        onChange={setNewServiceName}
+                                    />
+                                    <SmartInput 
+                                        type="tel" 
+                                        placeholder="Telefon" 
+                                        value={newServicePhone} 
+                                        onChange={setNewServicePhone}
+                                    />
+                                    <SmartInput 
+                                        type="text" 
+                                        placeholder="Emoji/Ikona" 
+                                        value={newServiceIcon} 
+                                        onChange={setNewServiceIcon}
+                                    />
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                                        <button onClick={()=>saveEditService(s.id)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">💾 Zapisz</button>
+                                        <button onClick={cancelEditService} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-3 md:p-4 rounded-2xl text-lg">❌ Anuluj</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center space-x-4 md:space-x-6 mb-4">
+                                        <span className="text-5xl md:text-6xl">{s.icon}</span>
+                                        <div className="flex-1 text-left">
+                                            <div className="text-2xl md:text-3xl font-bold text-gray-800">{s.name}</div>
+                                            <div className="text-lg md:text-xl text-gray-500">{s.phone}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                                        <button onClick={()=>makeCall(s)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl flex items-center justify-center text-lg">📞 Zadzwoń</button>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 mt-3">
+                                        <button onClick={()=>startEditService(s)} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white p-3 md:p-4 rounded-2xl text-lg">✏️ Edytuj</button>
+                                        <button onClick={()=>deleteService(s.id)} className="flex-1 bg-red-500 hover:bg-red-600 text-white p-3 md:p-4 rounded-2xl text-lg">🗑️ Usuń</button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ))}
+                    <div className="bg-orange-50 border-4 border-orange-300 p-4 md:p-6 rounded-3xl space-y-4">
+                        <h3 className="text-xl md:text-2xl font-bold text-center">Dodaj Usługę</h3>
+                        <SmartInput 
+                            type="text" 
+                            placeholder="Nazwa" 
+                            value={newServiceName} 
+                            onChange={setNewServiceName}
+                        />
+                        <SmartInput 
+                            type="tel" 
+                            placeholder="Telefon" 
+                            value={newServicePhone} 
+                            onChange={setNewServicePhone}
+                        />
+                        <SmartInput 
+                            type="text" 
+                            placeholder="Emoji/Ikona" 
+                            value={newServiceIcon} 
+                            onChange={setNewServiceIcon}
+                        />
+                        <button onClick={addService} className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj Usługę</button>
+                    </div>
                 </div>
-              )}
-            </div>
-            <div className="text-center mt-6 text-gray-600 text-lg md:text-xl"><p>Senior-Easy © 2025 | Pomoc: +480 800 800</p></div>
-          </>
-        )}
-      </>
-    );
-  }
+            );
 
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>{
-      navigator.serviceWorker.register('service-worker.js').then(r=>console.log('SW ok',r)).catch(err=>console.log('SW fail',err));
-    });
-  }
+            // EKRAN KONTAKTÓW
+            const ContactsScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">Kontakty Rodzinne</h2>
+                    {familyContacts.map(c=>(
+                        <div key={c.id} className="bg-white border-4 border-blue-500 p-4 md:p-6 rounded-3xl shadow-xl mb-4">
+                            {editingContact === c.id ? (
+                                <div className="space-y-4">
+                                    <SmartInput 
+                                        type="text" 
+                                        placeholder="Imię i nazwisko" 
+                                        value={newContactName} 
+                                        onChange={setNewContactName}
+                                    />
+                                    <SmartInput 
+                                        type="tel" 
+                                        placeholder="Numer telefonu z +48" 
+                                        value={newContactPhone} 
+                                        onChange={setNewContactPhone}
+                                    />
+                                    <select 
+                                        value={newContactApp} 
+                                        onChange={e=>setNewContactApp(e.target.value)} 
+                                        className="w-full improved-input border-2 border-gray-300 rounded-2xl"
+                                    >
+                                        <option value="">Brak aplikacji</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="viber">Viber</option>
+                                    </select>
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                                        <button onClick={()=>saveEditContact(c.id)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl text-lg">💾 Zapisz</button>
+                                        <button onClick={cancelEditContact} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-3 md:p-4 rounded-2xl text-lg">❌ Anuluj</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center space-x-4 md:space-x-6 mb-4">
+                                        <span className="text-5xl md:text-6xl">{c.avatar}</span>
+                                        <div className="flex-1">
+                                            <div className="text-2xl md:text-3xl font-bold text-gray-800">{c.name}</div>
+                                            <div className="text-lg md:text-xl text-gray-500">{c.phone}</div>
+                                            <div className="text-base md:text-lg text-gray-400">{c.app?`(${c.app})`:''}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                                        <button onClick={()=>makeCall(c)} className="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 md:p-4 rounded-2xl flex items-center justify-center text-lg">📞 Zadzwoń</button>
+                                        <button onClick={()=>startVideoCall(c)} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-3 md:p-4 rounded-2xl flex items-center justify-center text-lg">🎥 Wideo</button>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 mt-3">
+                                        <button onClick={()=>startEditContact(c)} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white p-3 md:p-4 rounded-2xl text-lg">✏️ Edytuj</button>
+                                        <button onClick={()=>deleteContact(c.id)} className="flex-1 bg-red-500 hover:bg-red-600 text-white p-3 md:p-4 rounded-2xl text-lg">🗑️ Usuń</button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ))}
+                    <div className="bg-blue-50 border-4 border-blue-300 p-4 md:p-6 rounded-3xl space-y-4">
+                        <h3 className="text-xl md:text-2xl font-bold text-center">Dodaj Kontakt</h3>
+                        <SmartInput 
+                            type="text" 
+                            placeholder="Imię i nazwisko" 
+                            value={newContactName} 
+                            onChange={setNewContactName}
+                        />
+                        <SmartInput 
+                            type="tel" 
+                            placeholder="Numer telefonu z +48" 
+                            value={newContactPhone} 
+                            onChange={setNewContactPhone}
+                        />
+                        <select 
+                            value={newContactApp} 
+                            onChange={e=>setNewContactApp(e.target.value)} 
+                            className="w-full improved-input border-2 border-gray-300 rounded-2xl"
+                        >
+                            <option value="">Brak aplikacji</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="viber">Viber</option>
+                        </select>
+                        <button onClick={addContact} className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl">➕ Dodaj Kontakt</button>
+                    </div>
+                </div>
+            );
 
-  ReactDOM.createRoot(document.getElementById('root')).render(<SeniorEasyApp/>);
-</script>
+            // EKRAN LEKÓW
+            const MedicationsScreen = () => (
+                <div className="space-y-4 md:space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">Przypomnienia o Lekach</h2>
+                    {medications.map(med=>{
+                        const medStatus = getMedicationStatus(med.time);
+                        const isToday = isMedicationDay(med.days);
+                        return (
+                            <div key={med.id} className={`bg-white border-4 p-4 md:p-6 rounded-3xl shadow-xl transition-all ${med.taken?'border-gray-300 opacity-60':medStatus.status==='ontime'?'border-green-500 shadow-green-200':medStatus.status==='early'?'border-yellow-400 shadow-yellow-200':'border-red-400 shadow-red-200'}`}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                        <div className="text-2xl md:text-3xl font-bold text-gray-800">{med.name}</div>
+                                        <div className="text-xl md:text-2xl text-gray-600">⏰ Godzina: {med.time}</div>
+                                        {med.note && <div className="text-lg md:text-xl text-blue-600 mt-1 bg-blue-50 px-3 py-1 rounded-lg inline-block">📝 {med.note}</div>}
+                                        <div className="mt-3 bg-gray-50 p-3 rounded-xl">
+                                            <p className="text-sm md:text-base text-gray-600 mb-2 font-semibold">📅 Harmonogram tygodniowy:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {[
+                                                    {short: 'Pn', full: 'Poniedziałek', index: 1},
+                                                    {short: 'Wt', full: 'Wtorek', index: 2},
+                                                    {short: 'Śr', full: 'Środa', index: 3},
+                                                    {short: 'Cz', full: 'Czwartek', index: 4},
+                                                    {short: 'Pt', full: 'Piątek', index: 5},
+                                                    {short: 'Sb', full: 'Sobota', index: 6},
+                                                    {short: 'Nd', full: 'Niedziela', index: 0}
+                                                ].map(day => {
+                                                    const isActive = med.days.includes(day.short);
+                                                    const isCurrentDay = new Date().getDay() === day.index;
+                                                    return (
+                                                        <div key={day.short} className={`px-3 py-2 rounded-lg text-sm md:text-base font-bold transition-all ${
+                                                            isActive && isCurrentDay ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white ring-4 ring-blue-300 scale-110' :
+                                                            isActive ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'
+                                                        }`} title={day.full}>
+                                                            {day.short}
+                                                            {isActive && isCurrentDay && <span className="ml-1">●</span>}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            {isToday && (
+                                                <div className="mt-2 text-center text-sm md:text-base font-bold text-green-600 bg-green-50 py-1 rounded">✓ Dzisiaj jest dzień przyjęcia tego leku</div>
+                                            )}
+                                            {!isToday && (
+                                                <div className="mt-2 text-center text-sm md:text-base font-bold text-gray-500 bg-gray-100 py-1 rounded">○ Dzisiaj nie jest dzień przyjęcia tego leku</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {!isToday && (
+                                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm md:text-base text-gray-600 font-bold ml-2">🚫 Nie dziś</div>
+                                    )}
+                                </div>
+                                {isToday && !med.taken && (
+                                    <div className={`mb-3 p-3 rounded-xl text-center text-lg md:text-xl font-bold ${
+                                        medStatus.status==='ontime'?'bg-green-100 text-green-700':
+                                        medStatus.status==='early'?'bg-yellow-100 text-yellow-700':
+                                        'bg-red-100 text-red-700'
+                                    }`}>
+                                        {medStatus.icon} {medStatus.text}
+                                    </div>
+                                )}
+                                {med.taken && (
+                                    <div className="mb-3 p-3 bg-gray-100 rounded-xl text-center text-lg md:text-xl font-bold text-gray-600">✅ Przyjęty dzisiaj</div>
+                                )}
+                                <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3">
+                                    {!med.taken && isToday ? (
+                                        <>
+                                            <button onClick={()=>markMedicationTaken(med.id)} disabled={medStatus.status==='early'} className={`flex-1 text-white p-3 md:p-4 rounded-2xl transition-colors text-xl md:text-2xl font-bold ${medStatus.status==='early'?'bg-gray-400 cursor-not-allowed':'bg-green-500 hover:bg-green-600 active:bg-green-700'}`}>✅ Przyjęty</button>
+                                            <button onClick={()=>postponeMedication(med.id)} className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white p-3 md:p-4 rounded-2xl transition-colors text-lg md:text-xl">⏰ Odłóż 15 min</button>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 bg-gray-300 text-white p-3 md:p-4 rounded-2xl text-center text-xl md:text-2xl font-bold">✅ Wykonano</div>
+                                    )}
+                                    <button onClick={()=>deleteMedication(med.id)} className="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white p-3 md:p-4 rounded-2xl transition-colors text-xl md:text-2xl">🗑️</button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {medicationHistory.length > 0 && (
+                        <div className="bg-purple-50 border-4 border-purple-300 p-4 md:p-6 rounded-3xl">
+                            <h3 className="text-xl md:text-2xl font-bold text-center mb-4">📊 Historia (ostatnie 7 dni)</h3>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {medicationHistory.slice(0, 20).map(entry => (
+                                    <div key={entry.id} className={`p-3 rounded-xl ${entry.status==='ontime'?'bg-green-100':entry.status==="late"?'bg-red-100':'bg-yellow-100'}`}>
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="font-bold text-lg">{entry.medName}</span>
+                                                <span className="text-gray-600 ml-2 text-sm">{entry.date}</span>
+                                            </div>
+                                            <span className="text-lg">{entry.time}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <div className="bg-blue-50 border-4 border-blue-300 p-4 md:p-6 rounded-3xl space-y-4">
+                        <h3 className="text-xl md:text-2xl font-bold text-center">➕ Dodaj Nowy Lek</h3>
+                        <SmartInput 
+                            type="text" 
+                            placeholder="Nazwa leku" 
+                            value={newMedName} 
+                            onChange={setNewMedName}
+                        />
+                        <SmartInput 
+                            type="time" 
+                            placeholder="Godzina" 
+                            value={newMedTime} 
+                            onChange={setNewMedTime}
+                        />
+                        <SmartInput 
+                            type="text" 
+                            placeholder="Notatka (np. przed jedzeniem)" 
+                            value={newMedNote} 
+                            onChange={setNewMedNote}
+                        />
+                        <div>
+                            <p className="text-lg md:text-xl font-bold mb-3 text-center text-gray-700">📅 Wybierz dni tygodnia:</p>
+                            <div className="bg-white p-4 rounded-2xl">
+                                <div className="grid grid-cols-7 gap-2">
+                                    {[
+                                        {short: 'Pn', full: 'Poniedziałek'},
+                                        {short: 'Wt', full: 'Wtorek'},
+                                        {short: 'Śr', full: 'Środa'},
+                                        {short: 'Cz', full: 'Czwartek'},
+                                        {short: 'Pt', full: 'Piątek'},
+                                        {short: 'Sb', full: 'Sobota'},
+                                        {short: 'Nd', full: 'Niedziela'}
+                                    ].map(day => (
+                                        <div key={day.short} className="flex flex-col items-center">
+                                            <button onClick={()=>toggleDay(day.short)} className={`w-full aspect-square rounded-xl text-base md:text-lg font-bold transition-all transform hover:scale-105 ${
+                                                newMedDays.includes(day.short) ?'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg' :'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                            }`} title={day.full}>
+                                                {day.short}
+                                            </button>
+                                            <span className="text-xs mt-1 text-gray-500">{day.full.slice(0,3)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                                    <button onClick={()=>setNewMedDays(['Pn','Wt','Śr','Cz','Pt','Sb','Nd'])} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm md:text-base font-bold">✓ Wszystkie dni</button>
+                                    <button onClick={()=>setNewMedDays(['Pn','Wt','Śr','Cz','Pt'])} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm md:text-base font-bold">📅 Pn-Pt</button>
+                                    <button onClick={()=>setNewMedDays(['Sb','Nd'])} className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-sm md:text-base font-bold">🏖️ Weekend</button>
+                                    <button onClick={()=>setNewMedDays([])} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm md:text-base font-bold">✗ Wyczyść</button>
+                                </div>
+                                <div className="mt-3 p-3 bg-blue-50 rounded-xl text-center">
+                                    <p className="text-sm md:text-base text-gray-600">Wybrano: <span className="font-bold text-blue-600">{newMedDays.length === 7 ? 'Codziennie' : newMedDays.length === 0 ? 'Brak dni' : newMedDays.join(', ')}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={addMedication} className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-xl md:text-2xl font-bold p-3 md:p-4 rounded-2xl transition-colors">➕ Dodaj Lek</button>
+                    </div>
+                </div>
+            );
+
+            // EKRAN USTAWIENIA
+            const SettingsScreen = () => (
+                <div className="space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8">Ustawienia</h2>
+                    
+                    <div className="bg-white border-4 border-blue-500 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex-1 pr-4">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-800">Użytkownik: {username}</div>
+                                <div className="text-lg md:text-xl text-gray-600 mt-2">Zalogowany</div>
+                            </div>
+                            <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold">
+                                Wyloguj
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border-4 border-green-500 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">🔐 Bezpieczeństwo</h3>
+                        <div className="space-y-4">
+                            <button 
+                                onClick={() => setCurrentScreen('password')}
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-2xl text-xl font-bold"
+                            >
+                                🔑 Zmień Hasło
+                            </button>
+                            <button 
+                                onClick={() => setCurrentScreen('sos')}
+                                className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold"
+                            >
+                                🚨 Zarządzaj Numerami SOS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border-4 border-blue-500 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex-1 pr-4"><div className="text-2xl md:text-3xl font-bold text-gray-800">Tryb Opieki Rodzinnej</div><div className="text-lg md:text-xl text-gray-600 mt-2">Rodzina otrzymuje powiadomienia</div></div>
+                            <button onClick={()=>setCareMode(!careMode)} className={`w-24 md:w-32 h-12 md:h-16 rounded-full transition-all ${careMode?'bg-green-500':'bg-gray-300'} relative flex-shrink-0`}><div className={`w-8 md:w-12 h-8 md:h-12 bg-white rounded-full absolute top-2 transition-all ${careMode?'left-12 md:left-16':'left-2'}`}></div></button>
+                        </div>
+                        <div className="text-lg md:text-xl text-gray-600 bg-blue-50 p-4 rounded-2xl">{careMode?'✓ Tryb aktywny - rodzina jest informowana':'✗ Tryb wyłączony'}</div>
+                    </div>
+
+                    <div className="bg-white border-4 border-purple-500 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex-1 pr-4">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-800">Asystent Głosowy</div>
+                                <div className="text-lg md:text-xl text-gray-600 mt-2">Sterowanie głosem</div>
+                            </div>
+                            <button onClick={()=>setVoiceAssistant(!voiceAssistant)} className={`w-24 md:w-32 h-12 md:h-16 rounded-full transition-all ${voiceAssistant?'bg-purple-500':'bg-gray-300'} relative flex-shrink-0`}>
+                                <div className={`w-8 md:w-12 h-8 md:h-12 bg-white rounded-full absolute top-2 transition-all ${voiceAssistant?'left-12 md:left-16':'left-2'}`}></div>
+                            </button>
+                        </div>
+                        <div className="text-lg md:text-xl text-gray-600 bg-purple-50 p-4 rounded-2xl">
+                            {voiceAssistant?'✓ Asystent włączony':'✗ Asystent wyłączony'}
+                        </div>
+                        {voiceAssistant && (
+                            <div className="mt-4 space-y-3">
+                                <button 
+                                    onClick={startVoiceAssistant}
+                                    disabled={isListening}
+                                    className={`w-full p-4 rounded-2xl text-xl font-bold ${
+                                        isListening ? 'bg-yellow-500' : 'bg-green-500 hover:bg-green-600'
+                                    } text-white`}
+                                >
+                                    {isListening ? '🎤 Słucham...' : '🎤 Uruchom Asystenta Głosowego'}
+                                </button>
+                                {voiceCommand && (
+                                    <div className="bg-blue-100 p-3 rounded-xl text-center">
+                                        <p className="text-lg font-bold">Wykryto komendę:</p>
+                                        <p className="text-md">"{voiceCommand}"</p>
+                                    </div>
+                                )}
+                                <div className="bg-yellow-50 p-4 rounded-xl">
+                                    <h4 className="font-bold mb-2">Dostępne komendy głosowe:</h4>
+                                    <ul className="text-sm space-y-1">
+                                        <li>• "Strona główna" lub "Pulpit"</li>
+                                        <li>• "Leki"</li>
+                                        <li>• "Rodzina" lub "Kontakty"</li>
+                                        <li>• "Usługi" lub "Służby"</li>
+                                        <li>• "Zdrowie"</li>
+                                        <li>• "Ustawienia"</li>
+                                        <li>• "Pogoda"</li>
+                                        <li>• "Pomoc" lub "SOS"</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-white border-4 border-green-500 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">🌤️ Pogoda</h3>
+                        <button onClick={fetchWeather} className="w-full bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-xl font-bold">
+                            Pobierz aktualną pogodę
+                        </button>
+                    </div>
+
+                    <div className="bg-purple-50 border-4 border-purple-300 p-6 md:p-8 rounded-3xl">
+                        <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">Informacje o Aplikacji</h3>
+                        <div className="space-y-3 text-lg md:text-xl text-gray-700">
+                            <p><strong>Wersja:</strong> 4.0 PWA</p><p><strong>Typ:</strong> Progressive Web App</p><p><strong>Wsparcie:</strong> +480 800 800</p>
+                            <p className="text-base md:text-lg text-gray-600 mt-4">Aplikacja działa offline i może być zainstalowana na urządzeniu mobilnym.</p>
+                        </div>
+                    </div>
+
+                    {/* PRZYCISK CZYSZCZENIA DANYCH W USTAWIENIACH */}
+                    <div className="bg-red-50 border-4 border-red-300 p-6 md:p-8 rounded-3xl text-center">
+                        <h3 className="text-2xl md:text-3xl font-bold text-red-600 mb-4">⚠️ Niebezpieczna strefa</h3>
+                        <button onClick={clearData} className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold">
+                            🗑️ Wyczyść wszystkie dane
+                        </button>
+                        <p className="text-gray-600 mt-2 text-sm">Usuwa wszystkie zapisane dane i wylogowuje</p>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div>
+                    {/* MODAL AWARYJNY */}
+                    {emergencyMode && (
+                        <div className="fixed inset-0 bg-red-600 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-3xl p-8 text-center max-w-md w-full">
+                                <div className="text-6xl mb-4">🚨</div>
+                                <h3 className="text-3xl font-bold text-red-600 mb-4">TRYB AWARYJNY</h3>
+                                <p className="text-xl mb-4">Powiadomienia zostaną wysłane za:</p>
+                                <div className="text-5xl font-bold text-red-600 mb-6">{emergencyCountdown}</div>
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={cancelEmergency}
+                                        className="w-full bg-green-500 hover:bg-green-600 text-white p-4 rounded-2xl text-xl font-bold"
+                                    >
+                                        ✅ ANULUJ - WSZYSTKO W PORZĄDKU
+                                    </button>
+                                    <button 
+                                        onClick={sendEmergencyNotifications}
+                                        className="w-full bg-red-500 hover:bg-red-600 text-white p-4 rounded-2xl text-xl font-bold"
+                                    >
+                                        🚨 WYŚLIJ NATYCHMIAST
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* POZOSTAŁE MODALE */}
+                    {showNotifyDialog && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowNotifyDialog(false)}>
+                            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                <h3 className="text-2xl md:text-3xl font-bold text-center mb-4 text-green-600">✅ Lek przyjęty!</h3>
+                                <p className="text-xl md:text-2xl text-center mb-6 text-gray-700">Kogo chcesz powiadomić o przyjęciu leku<br/><strong>"{selectedMedication?.name}"</strong>?</p>
+                                <div className="space-y-3 mb-6">
+                                    {familyContacts.filter(c => c.app === 'whatsapp' || c.app === 'viber').map(contact => (
+                                        <button key={contact.id} onClick={() => sendNotification(contact.id)} className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:from-green-700 active:to-green-800 text-white p-4 md:p-6 rounded-2xl shadow-lg flex items-center space-x-4 transition-all transform hover:scale-105">
+                                            <span className="text-4xl md:text-5xl">{contact.avatar}</span>
+                                            <div className="flex-1 text-left">
+                                                <div className="text-xl md:text-2xl font-bold">{contact.name}</div>
+                                                <div className="text-base md:text-lg opacity-90">{contact.app === 'whatsapp' ? '📱 WhatsApp' : '💬 Viber'}</div>
+                                            </div>
+                                            <span className="text-3xl md:text-4xl">✉️</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                {familyContacts.filter(c => c.app === 'whatsapp' || c.app === 'viber').length > 1 && (
+                                    <button onClick={sendToAll} className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800 text-white p-4 md:p-6 rounded-2xl shadow-lg font-bold text-xl md:text-2xl mb-4 transition-all transform hover:scale-105">
+                                        📢 Wyślij do wszystkich
+                                    </button>
+                                )}
+                                <button onClick={() => { setShowNotifyDialog(false); setSelectedMedication(null); }} className="w-full bg-gray-400 hover:bg-gray-500 active:bg-gray-600 text-white p-4 md:p-5 rounded-2xl font-bold text-xl md:text-2xl transition-colors">
+                                    ❌ Nie wysyłaj
+                                </button>
+                                {familyContacts.filter(c => c.app === 'whatsapp' || c.app === 'viber').length === 0 && (
+                                    <div className="bg-yellow-50 border-4 border-yellow-400 p-6 rounded-2xl text-center">
+                                        <p className="text-xl md:text-2xl font-bold text-yellow-800 mb-2">⚠️ Brak kontaktów</p>
+                                        <p className="text-lg md:text-xl text-yellow-700">Dodaj członków rodziny z WhatsApp lub Viber w zakładce "Rodzina"</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {showInstallPrompt && (
+                        <div className="install-prompt bg-blue-600 text-white p-4 rounded-2xl shadow-2xl max-w-md">
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1"><p className="text-lg font-bold">Zainstaluj Senior-Easy</p><p className="text-sm">Używaj aplikacji jak natywnej na Windows i Android!</p></div>
+                                <div className="flex space-x-2"><button onClick={handleInstallClick} className="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold">Instaluj</button><button onClick={() => setShowInstallPrompt(false)} className="bg-blue-700 px-4 py-2 rounded-xl">Później</button></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* LOGOWANIE */}
+                    {!isLoggedIn ? (
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 text-center max-w-md mx-auto mt-8">
+                            <h1 className="text-4xl font-bold text-blue-600 mb-2">Senior-Easy</h1>
+                            <p className="text-xl text-gray-600 mb-6">Zaloguj się do aplikacji</p>
+                            <div className="space-y-4">
+                                <SmartInput
+                                    type="text"
+                                    placeholder="Nazwa użytkownika"
+                                    value={username}
+                                    onChange={setUsername}
+                                />
+                                <SmartInput
+                                    type="password"
+                                    placeholder="Hasło (domyślnie: senior123)"
+                                    value={password}
+                                    onChange={setPassword}
+                                />
+                                <button
+                                    onClick={handleLogin}
+                                    className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold p-4 rounded-2xl"
+                                >
+                                    🔐 Zaloguj się
+                                </button>
+                            </div>
+                            <p className="text-gray-500 mt-4 text-sm">Domyślne hasło: senior123</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* GÓRNY PANEL NAWIGACYJNY */}
+                            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-4 mb-4 sm:mb-6 flex justify-between items-center">
+                                <button onClick={() => setCurrentScreen('dashboard')} className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-colors">
+                                    <span className="text-3xl sm:text-5xl">🏠</span>
+                                </button>
+                                <div className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 px-2 text-center">
+                                    {currentScreen==='dashboard'?'Pulpit':
+                                     currentScreen==='video'?'Rozmowa Wideo':
+                                     currentScreen==='medications'?'Leki':
+                                     currentScreen==='contacts'?'Rodzina':
+                                     currentScreen==='services'?'Usługi':
+                                     currentScreen==='health'?'Zdrowie':
+                                     currentScreen==='reminders'?'Przypomnienia':
+                                     currentScreen==='password'?'Zmiana Hasła':
+                                     currentScreen==='sos'?'Numery SOS':
+                                     currentScreen==='settings'?'Ustawienia':'Strona Główna'}
+                                </div>
+                                <button onClick={() => setCurrentScreen('settings')} className="bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-colors">
+                                    <span className="text-3xl sm:text-5xl">⚙️</span>
+                                </button>
+                            </div>
+
+                            {/* PRZYCISK AWARYJNY - ZAWSZE WIDOCZNY */}
+                            <div className="fixed bottom-20 right-4 z-40">
+                                <button 
+                                    onClick={activateEmergencyMode}
+                                    className="emergency-pulse bg-red-500 hover:bg-red-600 text-white p-6 rounded-full shadow-2xl text-3xl"
+                                >
+                                    🆘
+                                </button>
+                            </div>
+
+                            {/* GŁÓWNA ZAWARTOŚĆ */}
+                            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8">
+                                {currentScreen==='dashboard' && <DashboardScreen />}
+                                {currentScreen==='health' && <HealthScreen />}
+                                {currentScreen==='reminders' && <RemindersScreen />}
+                                {currentScreen==='password' && <ChangePasswordScreen />}
+                                {currentScreen==='sos' && <SosContactsScreen />}
+                                {currentScreen==='video' && <VideoCallScreen />}
+                                {currentScreen==='services' && <ServicesScreen />}
+                                {currentScreen==='contacts' && <ContactsScreen />}
+                                {currentScreen==='medications' && <MedicationsScreen />}
+                                {currentScreen==='settings' && <SettingsScreen />}
+                                
+                                {/* EKRAN GŁÓWNY */}
+                                {currentScreen==='home' && (
+                                    <div className="space-y-4 sm:space-y-6 text-center">
+                                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-600 mb-2">Senior-Easy</h1>
+                                        <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-4">Witaj! Co chcesz zrobić?</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                                            <button onClick={()=>setCurrentScreen('video')} className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white p-6 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col items-center justify-center space-y-2 sm:space-y-3 md:space-y-4 transition-colors min-h-[140px] sm:min-h-[160px]"><span className="text-4xl sm:text-5xl">📹</span><span className="text-xl sm:text-2xl md:text-3xl font-bold">Rozmowa Wideo</span></button>
+                                            <button onClick={()=>setCurrentScreen('medications')} className="bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white p-6 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col items-center justify-center space-y-2 sm:space-y-3 md:space-y-4 transition-colors min-h-[140px] sm:min-h-[160px]"><span className="text-4xl sm:text-5xl">💊</span><span className="text-xl sm:text-2xl md:text-3xl font-bold">Leki</span></button>
+                                            <button onClick={()=>setCurrentScreen('contacts')} className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white p-6 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col items-center justify-center space-y-2 sm:space-y-3 md:space-y-4 transition-colors min-h-[140px] sm:min-h-[160px]"><span className="text-4xl sm:text-5xl">📞</span><span className="text-xl sm:text-2xl md:text-3xl font-bold">Rodzina</span></button>
+                                            <button onClick={()=>setCurrentScreen('services')} className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white p-6 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col items-center justify-center space-y-2 sm:space-y-3 md:space-y-4 transition-colors min-h-[140px] sm:min-h-[160px]"><span className="text-4xl sm:text-5xl">📍</span><span className="text-xl sm:text-2xl md:text-3xl font-bold">Usługi</span></button>
+                                        </div>
+                                        {/* UKRYTY PRZYCISK CZYSZCZENIA DANYCH - TYLKO PO ZALOGOWANIU */}
+                                        <button onClick={clearData} className="mt-4 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-colors text-base sm:text-lg">
+                                            🗑️ Wyczyść wszystkie dane
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-center mt-6 text-gray-600 text-lg md:text-xl"><p>Senior-Easy © 2025 | Pomoc: +480 800 800</p></div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(r => console.log('SW registered:', r))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<SeniorEasyApp />);
+    </script>
 </body>
 </html>
